@@ -1,0 +1,17 @@
+@import "./utils/css/variables";
+@import "./utils/css/mixins";
+
+.app {
+  color: $dark-color;
+  background: $light-color;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app__inner {
+  @include app-inner-width;
+  margin: $header-height auto 0;
+  padding: 1rem 0;
+  flex: 1;
+}

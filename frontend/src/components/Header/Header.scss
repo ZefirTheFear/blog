@@ -1,0 +1,53 @@
+@import "../../utils/css/variables";
+@import "../../utils/css/mixins";
+
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: $header-height;
+  background: $main-app-color;
+  border-bottom: 1px solid $dark-color;
+  z-index: $header-z-i;
+}
+
+.header__inner {
+  @include app-inner-width;
+  height: 100%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+}
+
+.header__dark-mode-toggler {
+  display: flex;
+  align-items: center;
+  margin: 0 1rem;
+
+  svg {
+    display: block;
+  }
+}
+
+.header__sun,
+.header__moon {
+  width: 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.header__sun {
+  svg {
+    fill: yellow;
+  }
+}
+
+.header__sun_active,
+.header__moon_active {
+  font-size: 1.2rem;
+}
+
+.header__switcher {
+  margin: 0 0.25rem;
+}

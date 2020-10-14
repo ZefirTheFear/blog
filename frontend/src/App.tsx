@@ -1,26 +1,52 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useCallback, useState, useEffect } from "react";
+import { BrowserRouter, Route, Switch, Redirect } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
 
-function App() {
+import Header from "./components/Header/Header";
+import Footer from "./components/Footer/Footer";
+
+import { RootState } from "./redux/store";
+import * as darkThemeActions from "./redux/actions/darkThemeActions/dartThemeActionCreators";
+
+import "./App.scss";
+
+const App: React.FC = () => {
+  const dispatch = useDispatch();
+
+  const isDarkTheme = useSelector((state: RootState) => state.darkTheme.isDarkTheme);
+
+  const [checkingDarkMode, setCheckingDarkMode] = useState(true);
+
+  const checkDarkMode = useCallback(() => {
+    const darkTheme = localStorage.getItem("isDarkTheme");
+    if (darkTheme === "true") {
+      dispatch(darkThemeActions.setIsDarkTheme(true));
+    }
+    setCheckingDarkMode(false);
+  }, [dispatch]);
+
+  useEffect(() => {
+    checkDarkMode();
+    return () => {};
+  }, [checkDarkMode]);
+
+  if (checkingDarkMode) {
+    return <div>Loading...</div>;
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className={"app" + (isDarkTheme ? " app_dark-mode" : "")}>
+      <BrowserRouter>
+        <Header />
+        <div className="app__inner">
+          <Switch>
+            <Redirect to="/" />
+          </Switch>
+        </div>
+        <Footer />
+      </BrowserRouter>
     </div>
   );
-}
+};
 
 export default App;

@@ -1,0 +1,13 @@
+@import "./variables";
+
+@mixin app-inner-width {
+  width: $app-inner-width;
+
+  @media (max-width: 1199px) {
+    width: 80%;
+  }
+
+  @media (max-width: 500px) {
+    width: 95%;
+  }
+}

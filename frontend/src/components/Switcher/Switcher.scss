@@ -1,0 +1,29 @@
+@import "../../utils/css/variables.scss";
+
+$switcher-inner-length: 1rem;
+$switcher-inner-intend: 2px;
+
+.switcher {
+  display: flex;
+  align-items: center;
+  width: 2rem;
+  height: 1.25rem;
+  background: $light-color;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: $main-transition;
+}
+
+.switcher__inner {
+  position: relative;
+  left: $switcher-inner-intend;
+  width: $switcher-inner-length;
+  height: $switcher-inner-length;
+  background: $dark-grey-color;
+  border-radius: 50%;
+  transition: $main-transition;
+}
+
+.switcher__inner_active {
+  left: calc(100% - #{$switcher-inner-length} - #{$switcher-inner-intend});
+}
