@@ -1,17 +1,17 @@
 import * as darkThemeActionTypes from "../actions/darkThemeActions/darkThemeActionTypes";
 
-interface IDarkTheme {
+interface IDarkThemeState {
   isDarkTheme: boolean;
 }
 
-const initialState: IDarkTheme = {
+const initialState: IDarkThemeState = {
   isDarkTheme: false
 };
 
 export default (
   state = initialState,
   action: darkThemeActionTypes.DarkThemeActionType
-): IDarkTheme => {
+): IDarkThemeState => {
   switch (action.type) {
     case darkThemeActionTypes.SET_IS_DARK_THEME:
       if (action.payload.isDarkTheme) {

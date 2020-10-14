@@ -1,7 +1,7 @@
 import { createStore, combineReducers } from "redux";
 
-// import scrollReducer from "./reducers/scrollReducer";
 import darkThemeReducer from "./reducers/darkThemeReducer";
+import mobileSearchFormReducer from "./reducers/mobileSearchFormReducer";
 
 declare global {
   interface Window {
@@ -10,8 +10,8 @@ declare global {
 }
 
 const rootReducer = combineReducers({
-  // scrollState: scrollReducer
-  darkTheme: darkThemeReducer
+  darkTheme: darkThemeReducer,
+  mobileSearchForm: mobileSearchFormReducer
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

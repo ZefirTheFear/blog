@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Switch, Redirect } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 
 import Header from "./components/Header/Header";
+import MobileSearchForm from "./components/MobileSearchForm/MobileSearchForm";
 import Footer from "./components/Footer/Footer";
 
 import { RootState } from "./redux/store";
@@ -38,6 +39,7 @@ const App: React.FC = () => {
     <div className={"app" + (isDarkTheme ? " app_dark-mode" : "")}>
       <BrowserRouter>
         <Header />
+        <MobileSearchForm />
         <div className="app__inner">
           <Switch>
             <Redirect to="/" />

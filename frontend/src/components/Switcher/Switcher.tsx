@@ -8,8 +8,6 @@ interface ISwitcherProps {
 }
 
 const Switcher: React.FC<ISwitcherProps> = ({ isActive, onClick }) => {
-  console.log("switcher rendered");
-
   return (
     <div className="switcher" onClick={onClick}>
       <div className={"switcher__inner" + (isActive ? " switcher__inner_active" : "")} />

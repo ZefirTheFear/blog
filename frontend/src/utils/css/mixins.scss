@@ -8,6 +8,23 @@
   }
 
   @media (max-width: 500px) {
-    width: 95%;
+    width: 90%;
+  }
+}
+
+@mixin svg-icon {
+  svg {
+    display: block;
+    fill: $dark-color;
+    transition: $main-transition;
+
+    &:active {
+      fill: $common-grey-color;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        fill: $common-grey-color;
+      }
+    }
   }
 }
