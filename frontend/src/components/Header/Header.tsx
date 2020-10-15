@@ -1,14 +1,14 @@
-import React, { useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 
-import { FaSearch } from "react-icons/fa";
-import { FaSun } from "react-icons/fa";
-import { FaMoon } from "react-icons/fa";
-import { FaSignInAlt } from "react-icons/fa";
+import { FaSearch, FaSun, FaMoon, FaSignInAlt } from "react-icons/fa";
+
 import { ReactComponent as Logo } from "../../assets/logo/logo.svg";
 
 import SearchForm from "../SearchForm/SearchForm";
 import Switcher from "../Switcher/Switcher";
+import Modal from "../Modal/Modal";
+import AuthForm from "../AuthForm/AuthForm";
 
 import { RootState } from "../../redux/store";
 import * as darkThemeActions from "../../redux/actions/darkThemeActions/dartThemeActionCreators";
@@ -21,6 +21,8 @@ const Header: React.FC = () => {
 
   const isDarkTheme = useSelector((state: RootState) => state.darkTheme.isDarkTheme);
 
+  const [isOpenAuthModal, setIsOpenAuthModal] = useState(false);
+
   const toggleDarkMode = useCallback(() => {
     dispatch(darkThemeActions.toggleDarkTheme());
   }, [dispatch]);
@@ -28,6 +30,14 @@ const Header: React.FC = () => {
   const toggleMobileSearchForm = useCallback(() => {
     dispatch(mobileSearchFormActions.toggleMobileSearchForm());
   }, [dispatch]);
+
+  const openAuthModal = useCallback(() => {
+    setIsOpenAuthModal(true);
+  }, []);
+
+  const closeAuthModal = useCallback(() => {
+    setIsOpenAuthModal(false);
+  }, []);
 
   return (
     <header className="header">
@@ -54,9 +64,14 @@ const Header: React.FC = () => {
             </span>
           </div>
         </div>
-        <span className="header__login" title="signin/login">
+        <span className="header__login" title="signin/login" onClick={openAuthModal}>
           <FaSignInAlt />
         </span>
+        {isOpenAuthModal && (
+          <Modal closeModal={closeAuthModal}>
+            <AuthForm />
+          </Modal>
+        )}
       </div>
     </header>
   );

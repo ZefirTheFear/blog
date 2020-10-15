@@ -1,0 +1,46 @@
+@import "../../utils/css/variables";
+@import "../../utils/css/mixins";
+
+.modal {
+  color: $light-color;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(#000, 0.5);
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: $modal-z-i;
+}
+
+// @supports (backdrop-filter: none) {
+//   .modal {
+//     backdrop-filter: blur(5px);
+//   }
+// }
+
+/* fallback for Firefox (not supporting backdrop-filter) */
+@supports not (backdrop-filter: none) {
+  .modal {
+    background-color: rgba(#000, 0.8);
+  }
+}
+
+.modal__inner {
+  padding: 0.5rem 1rem;
+  background: $dark-grey-color;
+  border-radius: $main-border-radius;
+}
+
+.modal__close {
+  @include svg-icon;
+
+  svg {
+    font-size: 1.25rem;
+    margin-left: auto;
+    fill: $light-color;
+  }
+}

@@ -16,6 +16,7 @@
   svg {
     display: block;
     fill: $dark-color;
+    cursor: pointer;
     transition: $main-transition;
 
     &:active {
@@ -25,6 +26,56 @@
       &:hover {
         fill: $common-grey-color;
       }
+    }
+  }
+}
+
+@mixin form-title {
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+@mixin auth-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+@mixin button {
+  margin-bottom: 1rem;
+  background: $main-app-color;
+  color: $light-color;
+  width: 100%;
+  border-radius: $main-border-radius;
+  padding: 0.25rem;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: $main-transition;
+
+  &:active {
+    background: darken($main-app-color, 10);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: darken($main-app-color, 10);
+    }
+  }
+}
+
+@mixin text-main-color-with-hover {
+  text-transform: uppercase;
+  color: $main-app-color;
+  cursor: pointer;
+  transition: $main-transition;
+
+  &:active {
+    color: darken($main-app-color, 10);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      color: darken($main-app-color, 10);
     }
   }
 }

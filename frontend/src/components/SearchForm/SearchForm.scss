@@ -49,14 +49,12 @@
 
 .search-form__btn {
   padding: 0 5px;
-  cursor: pointer;
   border-left: 1px solid $main-app-color;
   background: $light-color;
+  cursor: pointer;
   transition: $main-transition;
 
   &:active {
-    // background: lighten($bg-color, 15);
-
     svg {
       color: $dark-color;
     }

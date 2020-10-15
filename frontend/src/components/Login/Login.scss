@@ -1,0 +1,42 @@
+@import "../../utils/css/mixins";
+
+.login {
+  @include auth-form;
+}
+
+.login__title {
+  @include form-title;
+}
+
+.login__nickname,
+.login__password {
+  margin-bottom: 1rem;
+}
+
+.login__submit-button {
+  @include button;
+}
+
+.login__forgot {
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: $main-transition;
+
+  @mixin hover {
+    color: $common-grey-color;
+  }
+  &:active {
+    @include hover;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @include hover;
+    }
+  }
+}
+
+.login__register {
+  @include text-main-color-with-hover;
+}

@@ -1,0 +1,24 @@
+@import "../../utils/css/mixins";
+
+.register {
+  @include auth-form;
+}
+
+.register__title {
+  @include form-title;
+}
+
+.register__nickname,
+.register__email,
+.register__password,
+.register__confirm-password {
+  margin-bottom: 1rem;
+}
+
+.register__submit-button {
+  @include button;
+}
+
+.register__login {
+  @include text-main-color-with-hover;
+}
