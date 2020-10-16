@@ -13,6 +13,7 @@
     "@types/react-dom": "^16.9.8",
     "@types/react-redux": "^7.1.9",
     "@types/react-router-dom": "^5.1.6",
+    "@types/validator": "^13.1.0",
     "clone-deep": "^4.0.1",
     "eslint-plugin-react-perf": "^3.2.4",
     "node-sass": "^4.14.1",
@@ -23,7 +24,8 @@
     "react-router-dom": "^5.2.0",
     "react-scripts": "3.4.3",
     "redux": "^4.0.5",
-    "typescript": "^3.7.5"
+    "typescript": "^3.7.5",
+    "validator": "^13.1.17"
   },
   "scripts": {
     "start": "react-scripts start",

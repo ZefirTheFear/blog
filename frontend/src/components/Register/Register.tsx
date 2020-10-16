@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from "react";
 import cloneDeep from "clone-deep";
+import validator from "validator";
 
 import InputGroup from "../InputGroup/InputGroup";
 
@@ -15,10 +16,10 @@ enum RegisterInputFields {
 }
 
 interface IRegisterInputErrors {
-  nickname: string[];
-  email: string[];
-  password: string[];
-  confirmPassword: string[];
+  nickname?: string[];
+  email?: string[];
+  password?: string[];
+  confirmPassword?: string[];
 }
 
 interface IRegisterProps {
@@ -30,12 +31,7 @@ const Register: React.FC<IRegisterProps> = ({ setAuthModeToLogin }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [errors, setErrors] = useState<IRegisterInputErrors>({
-    nickname: [],
-    email: [],
-    password: [],
-    confirmPassword: []
-  });
+  const [errors, setErrors] = useState<IRegisterInputErrors>({});
 
   const changeInputValue = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.name === RegisterInputFields.nickname) {
@@ -61,10 +57,54 @@ const Register: React.FC<IRegisterProps> = ({ setAuthModeToLogin }) => {
     [errors]
   );
 
-  const registerUser = useCallback((e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    console.log("in progress");
-  }, []);
+  const validate = useCallback(() => {
+    const clientErrors: IRegisterInputErrors = {};
+
+    if (nickname.trim().length < 1 || nickname.trim().length > 25) {
+      const oldMsgs = clientErrors.nickname ? cloneDeep(clientErrors.nickname) : [];
+      clientErrors.nickname = [...oldMsgs, "from 1 to 25 symbols"];
+    }
+
+    if (!validator.isEmail(email)) {
+      const oldMsgs = clientErrors.email ? cloneDeep(clientErrors.email) : [];
+      clientErrors.email = [...oldMsgs, "enter valid email"];
+    }
+
+    if (password.trim().length < 5 || password.trim().length > 30) {
+      const oldMsgs = clientErrors.password ? cloneDeep(clientErrors.password) : [];
+      clientErrors.password = [...oldMsgs, "from 5 to 25 symbols"];
+    }
+
+    if (validator.isLowercase(password)) {
+      const oldMsgs = clientErrors.password ? cloneDeep(clientErrors.password) : [];
+      clientErrors.password = [...oldMsgs, "at least 1 capital symbol"];
+    }
+
+    if (confirmPassword !== password) {
+      const oldMsgs = clientErrors.confirmPassword ? cloneDeep(clientErrors.confirmPassword) : [];
+      clientErrors.confirmPassword = [...oldMsgs, "the password must match"];
+    }
+
+    if (Object.keys(clientErrors).length > 0) {
+      console.log(clientErrors);
+      return clientErrors;
+    }
+  }, [nickname, email, password, confirmPassword]);
+
+  const registerUser = useCallback(
+    (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      console.log("in progress");
+
+      const validationResult = validate();
+      console.log(validationResult);
+
+      if (validationResult) {
+        return setErrors(validationResult);
+      }
+    },
+    [validate]
+  );
 
   return (
     <div className="register">
@@ -74,7 +114,7 @@ const Register: React.FC<IRegisterProps> = ({ setAuthModeToLogin }) => {
           <InputGroup
             type={InputGroupType.plain}
             inputType="text"
-            errors={errors.nickname}
+            {...(errors.nickname ? { errors: errors.nickname } : {})}
             placeholder="nickname"
             name={RegisterInputFields.nickname}
             value={nickname}
@@ -86,7 +126,7 @@ const Register: React.FC<IRegisterProps> = ({ setAuthModeToLogin }) => {
           <InputGroup
             type={InputGroupType.plain}
             inputType="email"
-            errors={errors.email}
+            {...(errors.email ? { errors: errors.email } : {})}
             placeholder="email"
             name={RegisterInputFields.email}
             value={email}
@@ -98,7 +138,7 @@ const Register: React.FC<IRegisterProps> = ({ setAuthModeToLogin }) => {
           <InputGroup
             type={InputGroupType.password}
             inputType="password"
-            errors={errors.password}
+            {...(errors.password ? { errors: errors.password } : {})}
             placeholder="password"
             name={RegisterInputFields.password}
             value={password}
@@ -110,7 +150,7 @@ const Register: React.FC<IRegisterProps> = ({ setAuthModeToLogin }) => {
           <InputGroup
             type={InputGroupType.password}
             inputType="password"
-            errors={errors.confirmPassword}
+            {...(errors.confirmPassword ? { errors: errors.confirmPassword } : {})}
             placeholder="confirm password"
             name="confirmPassword"
             value={confirmPassword}

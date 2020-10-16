@@ -13,8 +13,8 @@ enum LoginInputFields {
 }
 
 interface ILoginInputErrors {
-  nickname: string[];
-  password: string[];
+  nickname?: string[];
+  password?: string[];
 }
 
 interface ILoginProps {
@@ -25,7 +25,7 @@ interface ILoginProps {
 const Login: React.FC<ILoginProps> = ({ setAuthModeToRegister, setAuthModeToForgotPassword }) => {
   const [nickname, setNickname] = useState("");
   const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState<ILoginInputErrors>({ nickname: [], password: [] });
+  const [errors, setErrors] = useState<ILoginInputErrors>({});
 
   const changeInputValue = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.name === LoginInputFields.nickname) {
@@ -45,10 +45,38 @@ const Login: React.FC<ILoginProps> = ({ setAuthModeToRegister, setAuthModeToForg
     [errors]
   );
 
-  const logIn = useCallback((e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    console.log("in progress");
-  }, []);
+  const validate = useCallback(() => {
+    const clientErrors: ILoginInputErrors = {};
+
+    if (nickname.trim().length < 1 || nickname.trim().length > 25) {
+      const oldMsgs = clientErrors.nickname ? cloneDeep(clientErrors.nickname) : [];
+      clientErrors.nickname = [...oldMsgs, "from 1 to 25 symbols"];
+    }
+
+    if (password.trim().length < 5 || password.trim().length > 30) {
+      const oldMsgs = clientErrors.password ? cloneDeep(clientErrors.password) : [];
+      clientErrors.password = [...oldMsgs, "from 5 to 25 symbols"];
+    }
+
+    if (Object.keys(clientErrors).length > 0) {
+      return clientErrors;
+    }
+  }, [nickname, password]);
+
+  const logIn = useCallback(
+    (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      console.log("in progress");
+
+      const validationResult = validate();
+      console.log(validationResult);
+
+      if (validationResult) {
+        return setErrors(validationResult);
+      }
+    },
+    [validate]
+  );
 
   return (
     <div className="login">
@@ -58,7 +86,7 @@ const Login: React.FC<ILoginProps> = ({ setAuthModeToRegister, setAuthModeToForg
           <InputGroup
             type={InputGroupType.plain}
             inputType="text"
-            errors={errors.nickname}
+            {...(errors.nickname ? { errors: errors.nickname } : {})}
             name={LoginInputFields.nickname}
             placeholder="nickname"
             value={nickname}
@@ -70,7 +98,7 @@ const Login: React.FC<ILoginProps> = ({ setAuthModeToRegister, setAuthModeToForg
           <InputGroup
             type={InputGroupType.password}
             inputType="password"
-            errors={errors.password}
+            {...(errors.password ? { errors: errors.password } : {})}
             name={LoginInputFields.password}
             placeholder="password"
             value={password}

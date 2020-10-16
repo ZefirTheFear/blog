@@ -1,6 +1,8 @@
 import React, { useState, useCallback } from "react";
 import { IoMdEye, IoMdEyeOff } from "react-icons/io";
 
+import InvalidFeedback from "../InvalidFeedback/InvalidFeedback";
+
 import "./InputGroup.scss";
 
 export enum InputGroupType {
@@ -11,7 +13,7 @@ export enum InputGroupType {
 interface IInputGroup {
   type: InputGroupType;
   inputType: string;
-  errors: string[];
+  errors?: string[];
   placeholder: string;
   name: string;
   value: string;
@@ -60,7 +62,7 @@ const InputGroup: React.FC<IInputGroup> = ({
           </div>
         )}
       </div>
-      {/* {errors ? errors.map((msg) => <InvalidFeedback key={msg} msg={msg} />) : null} */}
+      {errors && errors.map((msg) => <InvalidFeedback key={msg} msg={msg} />)}
     </div>
   );
 };

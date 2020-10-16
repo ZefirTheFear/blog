@@ -13,7 +13,7 @@ enum AuthMode {
 }
 
 const AuthForm: React.FC = () => {
-  const [authMode, setAuthMode] = useState<AuthMode>(AuthMode.register);
+  const [authMode, setAuthMode] = useState<AuthMode>(AuthMode.login);
 
   const setAuthModeToRegister = useCallback(() => {
     return setAuthMode(AuthMode.register);
