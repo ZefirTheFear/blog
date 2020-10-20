@@ -1,0 +1,17 @@
+@import "../../utils/css/variables";
+@import "../../utils/css/mixins";
+
+.confirm {
+  text-align: center;
+  width: 250px;
+}
+
+.confirm__msg {
+  text-transform: uppercase;
+  margin: 1rem 0;
+}
+
+.confirm__btn {
+  @include button;
+  width: 100px;
+}

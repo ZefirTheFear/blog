@@ -18,16 +18,14 @@ const Modal: React.FC<IModalProps> = ({ closeModal, children }) => {
   }, []);
 
   return createPortal(
-    <>
-      <div className="modal">
-        <div className="modal__inner">
-          <div className="modal__close">
-            <MdClose onClick={closeModal} />
-          </div>
-          {children}
+    <div className="modal">
+      <div className="modal__inner">
+        <div className="modal__close">
+          <MdClose onClick={closeModal} />
         </div>
+        {children}
       </div>
-    </>,
+    </div>,
     document.body
   );
 };

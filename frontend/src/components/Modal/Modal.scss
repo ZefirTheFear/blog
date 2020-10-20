@@ -2,17 +2,7 @@
 @import "../../utils/css/mixins";
 
 .modal {
-  color: $light-color;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(#000, 0.5);
-  backdrop-filter: blur(5px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  @include modal;
   z-index: $modal-z-i;
 }
 
@@ -23,11 +13,11 @@
 // }
 
 /* fallback for Firefox (not supporting backdrop-filter) */
-@supports not (backdrop-filter: none) {
-  .modal {
-    background-color: rgba(#000, 0.8);
-  }
-}
+// @supports not (backdrop-filter: none) {
+//   .modal {
+//     background-color: rgba($dark-color, 0.99);
+//   }
+// }
 
 .modal__inner {
   padding: 0.5rem 1rem;

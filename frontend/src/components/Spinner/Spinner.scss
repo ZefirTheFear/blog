@@ -1,0 +1,14 @@
+@import "../../utils/css/variables";
+@import "../../utils/css/mixins.scss";
+
+.spinner {
+  @include modal;
+  z-index: $spinner-z-i;
+
+  svg {
+    height: 100px;
+    width: 100px;
+    display: block;
+    fill: $main-app-color;
+  }
+}

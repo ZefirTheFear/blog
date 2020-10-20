@@ -1,18 +1,35 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import cloneDeep from "clone-deep";
 import validator from "validator";
+import axios, { AxiosError } from "axios";
 
 import InputGroup from "../InputGroup/InputGroup";
 
 import { InputGroupType } from "../InputGroup/InputGroup";
 
+import { convertInputErrors } from "../../utils/ts/convertInputErrors";
+
+import { ReactComponent as SWWImg } from "../../assets/errorImgs/client-server-error.svg";
+
+import Spinner from "../Spinner/Spinner";
+import Modal from "../Modal/Modal";
+import Confirm from "../Confirm/Confirm";
+
 import "./Register.scss";
+import SomethingWentWrong from "../SomethingWentWrong/SomethingWentWrong";
 
 enum RegisterInputFields {
   nickname = "nickname",
   email = "email",
   password = "password",
   confirmPassword = "confirmPassword"
+}
+
+interface IRegisterData {
+  nickname: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
 }
 
 interface IRegisterInputErrors {
@@ -26,12 +43,18 @@ interface IRegisterProps {
   setAuthModeToLogin: () => void;
 }
 
+const signal = axios.CancelToken.source();
+
 const Register: React.FC<IRegisterProps> = ({ setAuthModeToLogin }) => {
   const [nickname, setNickname] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [errors, setErrors] = useState<IRegisterInputErrors>({});
+  const [inputErrors, setInputErrors] = useState<IRegisterInputErrors>({});
+
+  const [isFetching, setIsFetching] = useState(false);
+  const [isNewUserIsRegistered, setIsNewUserIsRegistered] = useState(false);
+  const [isSomethingWentWrong, setIsSomethingWentWrong] = useState(false);
 
   const changeInputValue = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.name === RegisterInputFields.nickname) {
@@ -50,19 +73,24 @@ const Register: React.FC<IRegisterProps> = ({ setAuthModeToLogin }) => {
 
   const focusInput = useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
-      const newErrors = cloneDeep(errors);
+      const newErrors = cloneDeep(inputErrors);
       delete newErrors[e.target.name as RegisterInputFields];
-      return setErrors(newErrors);
+      return setInputErrors(newErrors);
     },
-    [errors]
+    [inputErrors]
   );
 
   const validate = useCallback(() => {
     const clientErrors: IRegisterInputErrors = {};
 
-    if (nickname.trim().length < 1 || nickname.trim().length > 25) {
+    if (nickname.trim().length < 1 || nickname.trim().length > 40) {
       const oldMsgs = clientErrors.nickname ? cloneDeep(clientErrors.nickname) : [];
-      clientErrors.nickname = [...oldMsgs, "from 1 to 25 symbols"];
+      clientErrors.nickname = [...oldMsgs, "from 1 to 40 symbols"];
+    }
+
+    if (email.trim().length < 5 || email.trim().length > 50) {
+      const oldMsgs = clientErrors.email ? cloneDeep(clientErrors.email) : [];
+      clientErrors.email = [...oldMsgs, "from 5 to 50 chars"];
     }
 
     if (!validator.isEmail(email)) {
@@ -70,9 +98,9 @@ const Register: React.FC<IRegisterProps> = ({ setAuthModeToLogin }) => {
       clientErrors.email = [...oldMsgs, "enter valid email"];
     }
 
-    if (password.trim().length < 5 || password.trim().length > 30) {
+    if (password.trim().length < 5 || password.trim().length > 40) {
       const oldMsgs = clientErrors.password ? cloneDeep(clientErrors.password) : [];
-      clientErrors.password = [...oldMsgs, "from 5 to 25 symbols"];
+      clientErrors.password = [...oldMsgs, "from 5 to 40 symbols"];
     }
 
     if (validator.isLowercase(password)) {
@@ -86,25 +114,83 @@ const Register: React.FC<IRegisterProps> = ({ setAuthModeToLogin }) => {
     }
 
     if (Object.keys(clientErrors).length > 0) {
-      console.log(clientErrors);
       return clientErrors;
     }
   }, [nickname, email, password, confirmPassword]);
 
   const registerUser = useCallback(
-    (e: React.FormEvent<HTMLFormElement>) => {
+    async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
-      console.log("in progress");
 
       const validationResult = validate();
       console.log(validationResult);
 
       if (validationResult) {
-        return setErrors(validationResult);
+        return setInputErrors(validationResult);
       }
+
+      const newUserData: IRegisterData = {
+        nickname,
+        email,
+        password,
+        confirmPassword
+      };
+
+      setIsFetching(true);
+      axios
+        .post("/users/register", newUserData, { cancelToken: signal.token })
+        .then((response) => {
+          console.log(response);
+          setIsNewUserIsRegistered(true);
+        })
+        .catch((error: AxiosError) => {
+          if (error.response) {
+            console.log(error.response);
+          }
+          if (error.response?.status === 422) {
+            const inputErrors = convertInputErrors(error.response.data.validationErrors);
+            setInputErrors(inputErrors);
+          }
+          if (error.response?.status === 503 || error.response?.status === 500) {
+            setIsSomethingWentWrong(true);
+          }
+        })
+        .finally(() => setIsFetching(false));
     },
-    [validate]
+    [confirmPassword, email, nickname, password, validate]
   );
+
+  const closeNewUserModal = useCallback(() => {
+    setIsNewUserIsRegistered(false);
+  }, []);
+
+  const closeSWWModal = useCallback(() => {
+    setIsSomethingWentWrong(false);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      signal.cancel();
+    };
+  }, []);
+
+  if (isFetching) {
+    return <Spinner />;
+  }
+
+  if (isNewUserIsRegistered) {
+    return (
+      <Modal closeModal={closeNewUserModal}>
+        <Confirm msg={"activation sent to your email"} onClick={closeNewUserModal} />
+      </Modal>
+    );
+  }
+
+  if (isSomethingWentWrong) {
+    return (
+      <SomethingWentWrong Img={SWWImg} closeSWWModal={closeSWWModal} msg={"something went wrong"} />
+    );
+  }
 
   return (
     <div className="register">
@@ -114,7 +200,7 @@ const Register: React.FC<IRegisterProps> = ({ setAuthModeToLogin }) => {
           <InputGroup
             type={InputGroupType.plain}
             inputType="text"
-            {...(errors.nickname ? { errors: errors.nickname } : {})}
+            {...(inputErrors.nickname ? { errors: inputErrors.nickname } : {})}
             placeholder="nickname"
             name={RegisterInputFields.nickname}
             value={nickname}
@@ -126,7 +212,7 @@ const Register: React.FC<IRegisterProps> = ({ setAuthModeToLogin }) => {
           <InputGroup
             type={InputGroupType.plain}
             inputType="email"
-            {...(errors.email ? { errors: errors.email } : {})}
+            {...(inputErrors.email ? { errors: inputErrors.email } : {})}
             placeholder="email"
             name={RegisterInputFields.email}
             value={email}
@@ -138,7 +224,7 @@ const Register: React.FC<IRegisterProps> = ({ setAuthModeToLogin }) => {
           <InputGroup
             type={InputGroupType.password}
             inputType="password"
-            {...(errors.password ? { errors: errors.password } : {})}
+            {...(inputErrors.password ? { errors: inputErrors.password } : {})}
             placeholder="password"
             name={RegisterInputFields.password}
             value={password}
@@ -150,7 +236,7 @@ const Register: React.FC<IRegisterProps> = ({ setAuthModeToLogin }) => {
           <InputGroup
             type={InputGroupType.password}
             inputType="password"
-            {...(errors.confirmPassword ? { errors: errors.confirmPassword } : {})}
+            {...(inputErrors.confirmPassword ? { errors: inputErrors.confirmPassword } : {})}
             placeholder="confirm password"
             name="confirmPassword"
             value={confirmPassword}

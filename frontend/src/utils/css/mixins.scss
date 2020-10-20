@@ -47,7 +47,7 @@
   color: $light-color;
   width: 100%;
   border-radius: $main-border-radius;
-  padding: 0.25rem;
+  padding: 0.25rem 0.5rem;
   text-transform: uppercase;
   cursor: pointer;
   transition: $main-transition;
@@ -78,4 +78,18 @@
       color: darken($main-app-color, 10);
     }
   }
+}
+
+@mixin modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  color: $light-color;
+  background: $dark-color;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
 }
