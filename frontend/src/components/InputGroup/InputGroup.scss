@@ -1,0 +1,53 @@
+@import "../../utils/css/variables";
+@import "../../utils/css/mixins";
+
+.input-group__input-group {
+  width: 250px;
+  display: flex;
+  align-items: center;
+  border: 1px solid $common-grey-color;
+  border-radius: $main-border-radius;
+  overflow: hidden;
+  transition: $main-transition;
+
+  &:focus-within {
+    border-color: $main-app-color !important;
+  }
+}
+
+.input-group__input-group_invalid {
+  border-color: $invalid-color !important;
+}
+
+.input-group__input {
+  flex: 1;
+  padding: 5px;
+  background: inherit;
+  color: $light-color;
+
+  &::placeholder {
+    color: $light-grey-color;
+  }
+}
+
+.input-group__type-toggle {
+  padding: 0 5px;
+  cursor: pointer;
+
+  @mixin hover {
+    color: $common-grey-color;
+  }
+  &:active {
+    @include hover;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @include hover;
+    }
+  }
+
+  svg {
+    font-size: 1.2rem;
+    display: block;
+  }
+}

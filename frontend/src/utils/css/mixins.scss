@@ -1,0 +1,95 @@
+@import "./variables";
+
+@mixin app-inner-width {
+  width: $app-inner-width;
+
+  @media (max-width: 1199px) {
+    width: 80%;
+  }
+
+  @media (max-width: 500px) {
+    width: 90%;
+  }
+}
+
+@mixin svg-icon {
+  svg {
+    display: block;
+    fill: $dark-color;
+    cursor: pointer;
+    transition: $main-transition;
+
+    &:active {
+      fill: $common-grey-color;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        fill: $common-grey-color;
+      }
+    }
+  }
+}
+
+@mixin form-title {
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+@mixin auth-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+@mixin button {
+  margin-bottom: 1rem;
+  background: $main-app-color;
+  color: $light-color;
+  width: 100%;
+  border-radius: $main-border-radius;
+  padding: 0.25rem 0.5rem;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: $main-transition;
+
+  &:active {
+    background: darken($main-app-color, 10);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: darken($main-app-color, 10);
+    }
+  }
+}
+
+@mixin text-main-color-with-hover {
+  text-transform: uppercase;
+  color: $main-app-color;
+  cursor: pointer;
+  transition: $main-transition;
+
+  &:active {
+    color: darken($main-app-color, 10);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      color: darken($main-app-color, 10);
+    }
+  }
+}
+
+@mixin modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  color: $light-color;
+  background: $dark-color;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+}

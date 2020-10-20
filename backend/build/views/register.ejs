@@ -1,0 +1,45 @@
+<head>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald&display=swap" rel="stylesheet" />
+</head>
+
+<div style="background: transparent; text-align: center;">
+  <div
+    style="
+      max-width: 700px;
+      background: #0d0d0d;
+      color: #00bb98;
+      align-items: center;
+      border-radius: 5px;
+      padding: 1rem;
+      text-transform: uppercase;
+      text-align: center;
+      margin: 0 auto;
+    "
+  >
+    <h1 style="color: #00bb98; font-family: 'Oswald', sans-serif; margin: 0;">
+      Hello, <%= nickname %>!
+    </h1>
+    <p style="font-family: 'Oswald', sans-serif; margin: 1rem 0;">
+      To activate your profile click the button below
+    </p>
+
+    <button
+      type="button"
+      style="outline: 0; border: 0; padding: 5px; background: #00bb98; border-radius: 5px;"
+    >
+      <a
+        style="
+          text-decoration: none;
+          text-transform: uppercase;
+          color: #f0fff0;
+          font-family: 'Oswald', sans-serif;
+          font-size: 1.5rem;
+          display: flex;
+          align-items: center;
+        "
+        href="<%= domain %>/users/activation/<%= userId %>/<%= hash %>"
+        >Activate
+      </a>
+    </button>
+  </div>
+</div>

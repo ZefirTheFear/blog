@@ -1,0 +1,12 @@
+@import "../../utils/css/variables";
+@import "../../utils/css/mixins";
+
+.footer {
+  padding: 1rem 0;
+  background: $main-app-color;
+}
+
+.footer__inner {
+  @include app-inner-width;
+  margin: 0 auto;
+}

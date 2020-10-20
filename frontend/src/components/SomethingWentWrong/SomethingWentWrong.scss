@@ -1,0 +1,43 @@
+@import "../../utils/css/variables.scss";
+@import "../../utils/css/mixins.scss";
+
+.something-went-wrong {
+  @include modal;
+  z-index: $sww-z-i;
+  flex-direction: column;
+}
+
+.something-went-wrong__img {
+  width: 250px;
+  height: 250px;
+  max-height: 50vh;
+  max-width: 50vh;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-bottom: 2rem;
+
+  svg {
+    height: 100%;
+    width: 100%;
+  }
+}
+
+.something-went-wrong__msg {
+  padding: 0 1rem;
+  text-align: center;
+  text-transform: uppercase;
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.something-went-wrong__btn-group {
+  width: 280px;
+  display: flex;
+  justify-content: space-around;
+
+  button {
+    @include button;
+    width: auto;
+    margin: 0;
+  }
+}

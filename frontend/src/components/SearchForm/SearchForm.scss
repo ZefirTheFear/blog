@@ -1,0 +1,76 @@
+@import "../../utils/css/variables";
+
+.search-form {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  border-radius: $main-border-radius;
+  overflow: hidden;
+  border: 1px solid transparent;
+  transition: $main-transition;
+
+  &:focus-within {
+    border-color: $common-grey-color;
+
+    .search-form__btn {
+      border-left-color: $common-grey-color;
+    }
+  }
+
+  @mixin hover {
+    border-color: $common-grey-color;
+
+    .search-form__btn {
+      border-left-color: $common-grey-color;
+    }
+  }
+  &:active {
+    @include hover;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @include hover;
+    }
+  }
+}
+
+.search-form__input {
+  background: $light-color;
+  color: $main-app-color;
+  height: 100%;
+  min-width: 100px;
+  flex-grow: 1;
+  padding: 5px 10px;
+
+  &::placeholder {
+    color: $main-app-color;
+  }
+}
+
+.search-form__btn {
+  padding: 0 5px;
+  border-left: 1px solid $main-app-color;
+  background: $light-color;
+  cursor: pointer;
+  transition: $main-transition;
+
+  &:active {
+    svg {
+      color: $dark-color;
+    }
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      svg {
+        color: $dark-color;
+      }
+    }
+  }
+}
+
+.search-form__icon {
+  display: block;
+  color: $main-app-color;
+  transition: $main-transition;
+}

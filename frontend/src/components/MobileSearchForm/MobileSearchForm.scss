@@ -1,0 +1,26 @@
+@import "../../utils/css/variables";
+@import "../../utils/css/mixins";
+
+.mobile-search-from {
+  background: $dark-grey-color;
+  padding: 0.5rem;
+  position: fixed;
+  top: $header-height;
+  height: 3rem;
+  width: 100%;
+  transform: translateY(-100%);
+  z-index: $mobile-search-form-z-i;
+  transition: $main-transition;
+}
+
+.mobile-search-from_open {
+  transform: translateY(0);
+}
+
+.mobile-search-from__inner {
+  @include app-inner-width;
+  height: 100%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+}

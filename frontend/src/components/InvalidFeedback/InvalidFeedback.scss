@@ -1,0 +1,8 @@
+@import "../../utils/css/variables";
+
+.invalid-feedback {
+  margin-top: 0.2rem;
+  font-size: 0.75rem;
+  color: $invalid-color;
+  text-transform: uppercase;
+}
