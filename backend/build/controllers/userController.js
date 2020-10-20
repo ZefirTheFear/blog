@@ -50,7 +50,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.registerUser = void 0;
+exports.activateUser = exports.registerUser = void 0;
 var express_validator_1 = require("express-validator");
 var bcryptjs_1 = __importDefault(require("bcryptjs"));
 var uuid_1 = require("uuid");
@@ -60,7 +60,7 @@ var mailer_1 = __importDefault(require("../core/mailer"));
 var UserModel_1 = __importDefault(require("../models/UserModel"));
 var UserActivatorModel_1 = __importDefault(require("../models/UserActivatorModel"));
 exports.registerUser = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, myValidationResult, newErrors, _a, nickname, email, password, hashedPassword, newUser, savedUser, error_1, hash, newUserActivator, savedUserActivator, error_2, emailTemplate, error_3, error_4, error_5;
+    var errors, myValidationResult, newErrors, _a, nickname, email, password, hashedPassword, error_1, newUser, savedUser, error_2, hash, newUserActivator, savedUserActivator, error_3, emailTemplate, error_4, error_5;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -80,67 +80,69 @@ exports.registerUser = function (req, res) { return __awaiter(void 0, void 0, vo
                 _a = req.body, nickname = _a.nickname, email = _a.email, password = _a.password;
                 _b.label = 1;
             case 1:
-                _b.trys.push([1, 23, , 24]);
+                _b.trys.push([1, 3, , 4]);
                 return [4 /*yield*/, bcryptjs_1.default.hash(password, 12)];
             case 2:
                 hashedPassword = _b.sent();
-                newUser = new UserModel_1.default({ nickname: nickname, email: email, password: hashedPassword });
-                savedUser = void 0;
-                _b.label = 3;
+                return [3 /*break*/, 4];
             case 3:
-                _b.trys.push([3, 5, , 6]);
-                return [4 /*yield*/, newUser.save()];
-            case 4:
-                savedUser = _b.sent();
-                return [3 /*break*/, 6];
-            case 5:
                 error_1 = _b.sent();
-                return [2 /*return*/, res.status(503).json(__assign({ status: "error", serverError: { msg: "oops. user creating problems" } }, error_1))];
+                return [2 /*return*/, res
+                        .status(500)
+                        .json({ status: "error", serverError: __assign({ msg: "oops. some problems" }, error_1) })];
+            case 4:
+                newUser = new UserModel_1.default({ nickname: nickname, email: email, password: hashedPassword });
+                _b.label = 5;
+            case 5:
+                _b.trys.push([5, 7, , 8]);
+                return [4 /*yield*/, newUser.save()];
             case 6:
+                savedUser = _b.sent();
+                return [3 /*break*/, 8];
+            case 7:
+                error_2 = _b.sent();
+                return [2 /*return*/, res.status(503).json(__assign({ status: "error", serverError: { msg: "oops. user creating problem" } }, error_2))];
+            case 8:
                 hash = uuid_1.v4();
                 newUserActivator = new UserActivatorModel_1.default({
                     userId: savedUser._id,
                     hash: hash
                 });
-                savedUserActivator = void 0;
-                _b.label = 7;
-            case 7:
-                _b.trys.push([7, 9, , 11]);
-                return [4 /*yield*/, newUserActivator.save()];
-            case 8:
-                savedUserActivator = _b.sent();
-                return [3 /*break*/, 11];
+                _b.label = 9;
             case 9:
-                error_2 = _b.sent();
-                return [4 /*yield*/, savedUser.remove()];
+                _b.trys.push([9, 11, , 13]);
+                return [4 /*yield*/, newUserActivator.save()];
             case 10:
-                _b.sent();
-                return [2 /*return*/, res.status(503).json(__assign({ status: "error", serverError: { msg: "oops. user activator creating problems" } }, error_2))];
+                savedUserActivator = _b.sent();
+                return [3 /*break*/, 13];
             case 11:
-                emailTemplate = void 0;
-                _b.label = 12;
+                error_3 = _b.sent();
+                return [4 /*yield*/, savedUser.remove()];
             case 12:
-                _b.trys.push([12, 14, , 17]);
+                _b.sent();
+                return [2 /*return*/, res.status(503).json(__assign({ status: "error", serverError: { msg: "oops. user activator creating problem" } }, error_3))];
+            case 13:
+                _b.trys.push([13, 15, , 18]);
                 return [4 /*yield*/, ejs_1.default.renderFile(path_1.default.join(__dirname, "../views/register.ejs"), {
                         nickname: nickname,
-                        domain: process.env.DOMAIN,
+                        port: process.env.PORT,
                         userId: savedUser._id,
                         hash: hash
                     })];
-            case 13:
-                emailTemplate = _b.sent();
-                return [3 /*break*/, 17];
             case 14:
-                error_3 = _b.sent();
-                return [4 /*yield*/, savedUser.remove()];
+                emailTemplate = _b.sent();
+                return [3 /*break*/, 18];
             case 15:
-                _b.sent();
-                return [4 /*yield*/, savedUserActivator.remove()];
+                error_4 = _b.sent();
+                return [4 /*yield*/, savedUser.remove()];
             case 16:
                 _b.sent();
-                return [2 /*return*/, res.status(503).json(__assign({ status: "error", serverError: { msg: "oops. emailTemplate creating problems" } }, error_3))];
+                return [4 /*yield*/, savedUserActivator.remove()];
             case 17:
-                _b.trys.push([17, 19, , 22]);
+                _b.sent();
+                return [2 /*return*/, res.status(500).json(__assign({ status: "error", serverError: { msg: "oops. emailTemplate creating problem" } }, error_4))];
+            case 18:
+                _b.trys.push([18, 20, , 23]);
                 return [4 /*yield*/, mailer_1.default.sendMail({
                         // to: email,
                         to: "z4clr07.gaming@gmail.com",
@@ -148,27 +150,83 @@ exports.registerUser = function (req, res) { return __awaiter(void 0, void 0, vo
                         subject: "Successful Register",
                         html: emailTemplate
                     })];
-            case 18:
-                _b.sent();
-                return [3 /*break*/, 22];
             case 19:
-                error_4 = _b.sent();
-                return [4 /*yield*/, savedUser.remove()];
+                _b.sent();
+                return [3 /*break*/, 23];
             case 20:
+                error_5 = _b.sent();
+                return [4 /*yield*/, savedUser.remove()];
+            case 21:
                 _b.sent();
                 return [4 /*yield*/, savedUserActivator.remove()];
-            case 21:
+            case 22:
                 _b.sent();
                 return [2 /*return*/, res
                         .status(503)
-                        .json(__assign({ status: "error", serverError: { msg: "oops. email sending problems" } }, error_4))];
-            case 22: return [2 /*return*/, res.status(201).json({ status: "success", data: { savedUser: savedUser, savedUserActivator: savedUserActivator } })];
-            case 23:
-                error_5 = _b.sent();
-                return [2 /*return*/, res
-                        .status(500)
-                        .json({ status: "error", serverError: __assign({ msg: "oops. some problems" }, error_5) })];
-            case 24: return [2 /*return*/];
+                        .json(__assign({ status: "error", serverError: { msg: "oops. email sending problem" } }, error_5))];
+            case 23: return [2 /*return*/, res.status(201).json({ status: "success", data: { savedUser: savedUser, savedUserActivator: savedUserActivator } })];
+        }
+    });
+}); };
+exports.activateUser = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var userId, hash, activation, error_6, user, error_7, error_8, error_9;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                userId = req.params.userId;
+                hash = req.params.hash;
+                _a.label = 1;
+            case 1:
+                _a.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, UserActivatorModel_1.default.findOne({ userId: userId, hash: hash })];
+            case 2:
+                activation = _a.sent();
+                return [3 /*break*/, 4];
+            case 3:
+                error_6 = _a.sent();
+                return [2 /*return*/, res.status(404).json({ status: "error", serverError: { msg: "invalid link" } })];
+            case 4:
+                if (!activation) {
+                    return [2 /*return*/, res.status(404).json({ status: "error", serverError: { msg: "actiovation not found" } })];
+                }
+                _a.label = 5;
+            case 5:
+                _a.trys.push([5, 7, , 8]);
+                return [4 /*yield*/, UserModel_1.default.findById(userId)];
+            case 6:
+                user = _a.sent();
+                return [3 /*break*/, 8];
+            case 7:
+                error_7 = _a.sent();
+                return [2 /*return*/, res.status(404).json({ status: "error", serverError: { msg: "invalid link" } })];
+            case 8:
+                if (!user) {
+                    return [2 /*return*/, res.status(404).json({ status: "error", serverError: { msg: "user not found" } })];
+                }
+                user.isActive = true;
+                _a.label = 9;
+            case 9:
+                _a.trys.push([9, 11, , 12]);
+                return [4 /*yield*/, user.save()];
+            case 10:
+                _a.sent();
+                return [3 /*break*/, 12];
+            case 11:
+                error_8 = _a.sent();
+                return [2 /*return*/, res.status(503).json(__assign({ status: "error", serverError: { msg: "oops. user updating problem" } }, error_8))];
+            case 12:
+                _a.trys.push([12, 14, , 15]);
+                return [4 /*yield*/, activation.remove()];
+            case 13:
+                _a.sent();
+                return [3 /*break*/, 15];
+            case 14:
+                error_9 = _a.sent();
+                return [2 /*return*/, res.status(503).json(__assign({ status: "error", serverError: { msg: "oops. userActivator removing problem" } }, error_9))];
+            case 15: return [2 /*return*/, (res
+                    .status(200)
+                    // .redirect("http://localhost:3000")
+                    .json({ status: "success" }))];
         }
     });
 }); };

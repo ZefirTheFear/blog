@@ -162,7 +162,8 @@ const Register: React.FC<IRegisterProps> = ({ setAuthModeToLogin }) => {
 
   const closeNewUserModal = useCallback(() => {
     setIsNewUserIsRegistered(false);
-  }, []);
+    setAuthModeToLogin();
+  }, [setAuthModeToLogin]);
 
   const closeSWWModal = useCallback(() => {
     setIsSomethingWentWrong(false);

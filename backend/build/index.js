@@ -17,9 +17,6 @@ app.use(express_1.default.text());
 app.set("view engine", "ejs");
 app.use(express_1.default.static(path_1.default.join(__dirname, "views")));
 app.use("/users", userRoutes_1.default);
-app.get("/", function (_, res) {
-    res.send("hello");
-});
 db_1.connectDB().then(function () {
     return app.listen(process.env.PORT, function () { return console.log("Server is running at " + process.env.PORT); });
 });

@@ -27,4 +27,5 @@ var registerValidation_1 = __importDefault(require("../validations/registerValid
 var userController = __importStar(require("../controllers/userController"));
 var router = express_1.default.Router();
 router.post("/register", registerValidation_1.default, userController.registerUser);
+router.get("/activation/:userId/:hash", userController.activateUser);
 exports.default = router;
