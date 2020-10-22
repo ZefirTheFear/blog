@@ -218,10 +218,10 @@ export const loginUser: RequestHandler<
     });
   }
 
+  const expiresInSec = 7 * 24 * 3600;
   const payload: jwtPayload = { userId: user._id };
-  // const token = jwt.sign({ userId: user._id }, process.env.JWT_KEY as jwt.Secret, {
   const token = jwt.sign(payload, process.env.JWT_KEY as jwt.Secret, {
-    expiresIn: 24 * 3600
+    expiresIn: expiresInSec
   });
 
   const jsonUser = user.toJSON();
@@ -230,7 +230,7 @@ export const loginUser: RequestHandler<
   }
   return res
     .status(200)
-    .json({ status: "success", jwtToken: token, user: jsonUser, expiresInMs: 24 * 3600 * 1000 });
+    .json({ status: "success", jwtToken: token, user: jsonUser, expiresInMs: expiresInSec * 1000 });
 };
 
 interface ICheckUserRequestBody {

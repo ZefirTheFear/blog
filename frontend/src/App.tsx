@@ -3,6 +3,10 @@ import { BrowserRouter, Route, Switch, Redirect } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import axios, { AxiosError } from "axios";
 
+import HomePage from "./pages/HomePage/HomePage";
+import ProfilePage from "./pages/ProfilePage/ProfilePage";
+import NewPost from "./pages/NewPost/NewPostPage";
+
 import Spinner from "./components/Spinner/Spinner";
 import Header from "./components/Header/Header";
 import MobileSearchForm from "./components/MobileSearchForm/MobileSearchForm";
@@ -80,7 +84,7 @@ const App: React.FC = () => {
       return;
     }
     const delayInms = new Date(new Date(expiryDate).getTime() - new Date().getTime()).getTime();
-    console.log(`logout in ${delayInms / 1000} sec `);
+    console.log(`logout in ${delayInms / (3600 * 1000)} h `);
     setTimeout(() => {
       dispatch(userActions.logout());
     }, delayInms);
@@ -114,6 +118,9 @@ const App: React.FC = () => {
         <MobileSearchForm />
         <div className="app__inner">
           <Switch>
+            <Route exact path="/" component={HomePage} />
+            <Route path="/@:nickname" component={ProfilePage} />
+            <Route exact path="/new-post" component={NewPost} />
             <Redirect to="/" />
           </Switch>
         </div>

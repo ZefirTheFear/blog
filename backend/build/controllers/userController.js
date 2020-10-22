@@ -241,7 +241,7 @@ exports.activateUser = function (req, res) { return __awaiter(void 0, void 0, vo
     });
 }); };
 exports.loginUser = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, nickname, password, user, error_10, result, payload, token, jsonUser;
+    var _a, nickname, password, user, error_10, result, expiresInSec, payload, token, jsonUser;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -278,9 +278,10 @@ exports.loginUser = function (req, res) { return __awaiter(void 0, void 0, void 
                             validationErrors: [{ param: "nickname", msg: "please activate user" }]
                         })];
                 }
+                expiresInSec = 7 * 24 * 3600;
                 payload = { userId: user._id };
                 token = jsonwebtoken_1.default.sign(payload, process.env.JWT_KEY, {
-                    expiresIn: 24 * 3600
+                    expiresIn: expiresInSec
                 });
                 jsonUser = user.toJSON();
                 if (jsonUser.password) {
@@ -288,7 +289,7 @@ exports.loginUser = function (req, res) { return __awaiter(void 0, void 0, void 
                 }
                 return [2 /*return*/, res
                         .status(200)
-                        .json({ status: "success", jwtToken: token, user: jsonUser, expiresInMs: 24 * 3600 * 1000 })];
+                        .json({ status: "success", jwtToken: token, user: jsonUser, expiresInMs: expiresInSec * 1000 })];
         }
     });
 }); };

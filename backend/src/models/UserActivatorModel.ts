@@ -7,7 +7,7 @@ export interface IUserActivator extends Document {
   hash: string;
 }
 
-const userActivatorSchema = new Schema(
+const UserActivatorSchema = new Schema(
   {
     userId: {
       type: Schema.Types.ObjectId,
@@ -22,4 +22,4 @@ const userActivatorSchema = new Schema(
   { timestamps: true }
 );
 
-export default model<IUserActivator>("UserActivator", userActivatorSchema);
+export default model<IUserActivator>("UserActivator", UserActivatorSchema);

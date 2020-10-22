@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useMemo, useState, useCallback, useEffect } from "react";
 import cloneDeep from "clone-deep";
 import validator from "validator";
 import axios, { AxiosError } from "axios";
@@ -52,9 +52,11 @@ interface IRegisterFailResponseData {
   serverError?: { customMsg: string };
 }
 
-const signal = axios.CancelToken.source();
-
 const Register: React.FC<IRegisterProps> = ({ setAuthModeToLogin }) => {
+  const signal = useMemo(() => {
+    return axios.CancelToken.source();
+  }, []);
+
   const [nickname, setNickname] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -167,7 +169,7 @@ const Register: React.FC<IRegisterProps> = ({ setAuthModeToLogin }) => {
         })
         .finally(() => setIsFetching(false));
     },
-    [confirmPassword, email, nickname, password, validate]
+    [confirmPassword, email, nickname, password, signal, validate]
   );
 
   const closeNewUserModal = useCallback(() => {
@@ -183,7 +185,7 @@ const Register: React.FC<IRegisterProps> = ({ setAuthModeToLogin }) => {
     return () => {
       signal.cancel();
     };
-  }, []);
+  }, [signal]);
 
   if (isFetching) {
     return <Spinner />;

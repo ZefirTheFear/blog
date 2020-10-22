@@ -1,7 +1,16 @@
 import React, { useState, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { useHistory } from "react-router-dom";
 
-import { FaSearch, FaSun, FaMoon, FaSignInAlt } from "react-icons/fa";
+import {
+  FaSearch,
+  FaSun,
+  FaMoon,
+  FaSignInAlt,
+  FaSignOutAlt,
+  FaUser,
+  FaPencilAlt
+} from "react-icons/fa";
 
 import { ReactComponent as Logo } from "../../assets/logo/logo.svg";
 
@@ -13,15 +22,25 @@ import AuthForm from "../AuthForm/AuthForm";
 import { RootState } from "../../redux/store";
 import * as darkThemeActions from "../../redux/actions/darkThemeActions/dartThemeActionCreators";
 import * as mobileSearchFormActions from "../../redux/actions/mobileSearchFormActions/mobileSearchFormActionCreators";
+import * as userActions from "../../redux/actions/userActions/userActionCreators";
 
 import "./Header.scss";
 
 const Header: React.FC = () => {
   const dispatch = useDispatch();
+  const history = useHistory();
 
   const isDarkTheme = useSelector((state: RootState) => state.darkTheme.isDarkTheme);
+  const isAuth = useSelector((state: RootState) => state.user.isAuth);
+  const user = useSelector((state: RootState) => state.user.user);
 
   const [isOpenAuthModal, setIsOpenAuthModal] = useState(false);
+  const [isOpenUserOptions, setIsOpenUserOptions] = useState(false);
+
+  const goToHomePage = useCallback(() => {
+    history.push("/");
+    setIsOpenUserOptions(false);
+  }, [history]);
 
   const toggleDarkMode = useCallback(() => {
     dispatch(darkThemeActions.toggleDarkTheme());
@@ -39,10 +58,24 @@ const Header: React.FC = () => {
     setIsOpenAuthModal(false);
   }, []);
 
+  const toggleUserOptions = useCallback(() => {
+    setIsOpenUserOptions((prevState) => !prevState);
+  }, []);
+
+  const goToNewPostPage = useCallback(() => {
+    history.push("/new-post");
+    setIsOpenUserOptions(false);
+  }, [history]);
+
+  const logout = useCallback(() => {
+    dispatch(userActions.logout());
+    setIsOpenUserOptions(false);
+  }, [dispatch]);
+
   return (
     <header className="header">
       <div className="header__inner">
-        <span className="header__logo">
+        <span className="header__logo" onClick={goToHomePage}>
           <Logo />
         </span>
         <div className="header__mobile-controls">
@@ -64,9 +97,30 @@ const Header: React.FC = () => {
             </span>
           </div>
         </div>
-        <span className="header__login" title="signin/login" onClick={openAuthModal}>
-          <FaSignInAlt />
-        </span>
+        {isAuth ? (
+          <div className="header__user">
+            <div className="header__user-img" onClick={toggleUserOptions}>
+              <img src={user?.avatar.url} alt="avatar" />
+            </div>
+            {isOpenUserOptions && (
+              <div className="header__user-options">
+                <div title="create post" onClick={goToNewPostPage}>
+                  <FaPencilAlt />
+                </div>
+                <div>
+                  <FaUser />
+                </div>
+                <div onClick={logout} title="logout">
+                  <FaSignOutAlt />
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <span className="header__login" title="signin/login" onClick={openAuthModal}>
+            <FaSignInAlt />
+          </span>
+        )}
         {isOpenAuthModal && (
           <Modal closeModal={closeAuthModal}>
             <AuthForm closeAuthModal={closeAuthModal} />

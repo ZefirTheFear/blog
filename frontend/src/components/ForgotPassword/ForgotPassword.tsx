@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useMemo, useState, useCallback, useEffect } from "react";
 import cloneDeep from "clone-deep";
 import validator from "validator";
 import axios, { AxiosError } from "axios";
@@ -45,9 +45,12 @@ interface IForgotPasswordFailResponseData {
   validationErrors?: IValidationError[];
   serverError?: { customMsg: string };
 }
-const signal = axios.CancelToken.source();
 
 const ForgotPassword: React.FC<IForgotPasswordProps> = ({ setAuthModeToLogin }) => {
+  const signal = useMemo(() => {
+    return axios.CancelToken.source();
+  }, []);
+
   const [nickname, setNickname] = useState("");
   const [email, setEmail] = useState("");
   const [inputErrors, setInputErrors] = useState<IForgotPasswordInputErrors>({});
@@ -135,7 +138,7 @@ const ForgotPassword: React.FC<IForgotPasswordProps> = ({ setAuthModeToLogin }) 
         })
         .finally(() => setIsFetching(false));
     },
-    [email, nickname, validate]
+    [email, nickname, signal, validate]
   );
 
   const closeNewPasswordModal = useCallback(() => {
@@ -151,7 +154,7 @@ const ForgotPassword: React.FC<IForgotPasswordProps> = ({ setAuthModeToLogin }) 
     return () => {
       signal.cancel();
     };
-  }, []);
+  }, [signal]);
 
   if (isFetching) {
     return <Spinner />;

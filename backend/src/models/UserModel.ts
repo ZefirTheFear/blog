@@ -11,7 +11,7 @@ export interface IUser extends Document {
   nickname: string;
   email: string;
   password: string;
-  avatar: string;
+  avatar: { url: string; publicId: string };
   status: UserStatus;
 }
 
@@ -19,6 +19,7 @@ const UserSchema = new Schema(
   {
     isActive: {
       type: Boolean,
+      required: true,
       default: false
     },
 
@@ -39,14 +40,16 @@ const UserSchema = new Schema(
     },
     avatar: {
       type: Object,
+      required: true,
       default: {
         url:
-          "https://res.cloudinary.com/ztf/image/upload/v1573335637/social-news/avatars/default_avatar.png",
-        public_id: null
+          "https://res.cloudinary.com/ztf/image/upload/v1603398100/common/defaults/default-avatar.jpg",
+        publicId: ""
       }
     },
     status: {
       type: String,
+      required: true,
       default: UserStatus.user
     }
   },

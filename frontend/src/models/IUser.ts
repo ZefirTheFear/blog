@@ -7,6 +7,6 @@ enum UserStatus {
 export interface IUser {
   nickname: string;
   email: string;
-  avatar: string;
+  avatar: { url: string; publicId: string };
   status: UserStatus;
 }
