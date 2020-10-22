@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react";
 import cloneDeep from "clone-deep";
+import validator from "validator";
 import axios, { AxiosError } from "axios";
 import { useDispatch } from "react-redux";
 
@@ -40,14 +41,14 @@ interface ILoginData {
   password: string;
 }
 
-interface ISuccessfulLoginResponseData {
+interface ILoginSuccessfulResponseData {
   status: string;
   jwtToken: string;
   user: IUser;
   expiresInMs: number;
 }
 
-interface IFailLoginResponseData {
+interface ILoginFailResponseData {
   status: string;
   serverError?: { customMsg: string };
   validationErrors?: IValidationError[];
@@ -90,14 +91,19 @@ const Login: React.FC<ILoginProps> = ({
   const validate = useCallback(() => {
     const clientErrors: ILoginInputErrors = {};
 
-    if (nickname.trim().length < 1 || nickname.trim().length > 25) {
+    if (nickname.trim().length < 1 || nickname.trim().length > 40) {
       const oldMsgs = clientErrors.nickname ? cloneDeep(clientErrors.nickname) : [];
-      clientErrors.nickname = [...oldMsgs, "from 1 to 25 symbols"];
+      clientErrors.nickname = [...oldMsgs, "from 1 to 40 symbols"];
     }
 
-    if (password.trim().length < 5 || password.trim().length > 30) {
+    if (password.trim().length < 5 || password.trim().length > 40) {
       const oldMsgs = clientErrors.password ? cloneDeep(clientErrors.password) : [];
-      clientErrors.password = [...oldMsgs, "from 5 to 25 symbols"];
+      clientErrors.password = [...oldMsgs, "from 5 to 40 symbols"];
+    }
+
+    if (validator.isLowercase(password)) {
+      const oldMsgs = clientErrors.password ? cloneDeep(clientErrors.password) : [];
+      clientErrors.password = [...oldMsgs, "at least 1 capital symbol"];
     }
 
     if (Object.keys(clientErrors).length > 0) {
@@ -106,7 +112,7 @@ const Login: React.FC<ILoginProps> = ({
   }, [nickname, password]);
 
   const loginHandler = useCallback(
-    (data: ISuccessfulLoginResponseData) => {
+    (data: ILoginSuccessfulResponseData) => {
       localStorage.setItem(LocalStorageItems.jwtToken, data.jwtToken);
       const remainingMilliseconds = data.expiresInMs;
       const expiryDate = new Date(new Date().getTime() + remainingMilliseconds);
@@ -135,7 +141,7 @@ const Login: React.FC<ILoginProps> = ({
 
       setIsFetching(true);
       axios
-        .post<ISuccessfulLoginResponseData>("/users/login", userData, {
+        .post<ILoginSuccessfulResponseData>("/users/login", userData, {
           cancelToken: signal.token
         })
         .then((response) => {
@@ -143,7 +149,7 @@ const Login: React.FC<ILoginProps> = ({
           loginHandler(response.data);
           closeAuthModal();
         })
-        .catch((error: AxiosError<IFailLoginResponseData>) => {
+        .catch((error: AxiosError<ILoginFailResponseData>) => {
           if (error.response) {
             console.log(error.response);
             if (error.response.data.validationErrors) {

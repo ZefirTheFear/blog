@@ -50,7 +50,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkUser = exports.loginUser = exports.activateUser = exports.registerUser = void 0;
+exports.resetPassword = exports.checkUser = exports.loginUser = exports.activateUser = exports.registerUser = void 0;
 var bcryptjs_1 = __importDefault(require("bcryptjs"));
 var uuid_1 = require("uuid");
 var path_1 = __importDefault(require("path"));
@@ -161,9 +161,7 @@ exports.registerUser = function (req, res) { return __awaiter(void 0, void 0, vo
                         status: "error",
                         serverError: __assign({ customMsg: "oops. email sending problem" }, error_5)
                     })];
-            case 23: 
-            // return res.status(201).json({ status: "success", data: { savedUser, savedUserActivator } });
-            return [2 /*return*/, res.status(201).json({ status: "success" })];
+            case 23: return [2 /*return*/, res.status(201).json({ status: "success" })];
         }
     });
 }); };
@@ -317,6 +315,89 @@ exports.checkUser = function (req, res) { return __awaiter(void 0, void 0, void 
                     return [2 /*return*/, res.status(404).json({ status: "error", serverError: { customMsg: "user not found" } })];
                 }
                 return [2 /*return*/, res.json({ status: "success", user: user })];
+        }
+    });
+}); };
+exports.resetPassword = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, nickname, email, user, error_12, newPassword, hashedPassword, error_13, emailTemplate, error_14, error_15;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _a = req.body, nickname = _a.nickname, email = _a.email;
+                _b.label = 1;
+            case 1:
+                _b.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, UserModel_1.default.findOne({ nickname: nickname, email: email })];
+            case 2:
+                user = _b.sent();
+                return [3 /*break*/, 4];
+            case 3:
+                error_12 = _b.sent();
+                return [2 /*return*/, res
+                        .status(400)
+                        .json({ status: "error", serverError: __assign({ customMsg: "bad request" }, error_12) })];
+            case 4:
+                if (!user) {
+                    return [2 /*return*/, res.status(404).json({
+                            status: "error",
+                            validationErrors: [
+                                { param: "nickname", msg: "user not found" },
+                                { param: "email", msg: "user not found" }
+                            ]
+                        })];
+                }
+                newPassword = "NP" + uuid_1.v4().slice(0, 8);
+                return [4 /*yield*/, bcryptjs_1.default.hash(newPassword, 12)];
+            case 5:
+                hashedPassword = _b.sent();
+                user.password = hashedPassword;
+                _b.label = 6;
+            case 6:
+                _b.trys.push([6, 8, , 9]);
+                return [4 /*yield*/, user.save()];
+            case 7:
+                _b.sent();
+                return [3 /*break*/, 9];
+            case 8:
+                error_13 = _b.sent();
+                return [2 /*return*/, res.status(503).json({
+                        status: "error",
+                        serverError: __assign({ customMsg: "oops. user updating problem" }, error_13)
+                    })];
+            case 9:
+                _b.trys.push([9, 11, , 12]);
+                return [4 /*yield*/, ejs_1.default.renderFile(path_1.default.join(__dirname, "../views/resetPassword.ejs"), {
+                        nickname: nickname,
+                        newPassword: newPassword
+                    })];
+            case 10:
+                emailTemplate = _b.sent();
+                return [3 /*break*/, 12];
+            case 11:
+                error_14 = _b.sent();
+                return [2 /*return*/, res.status(500).json({
+                        status: "error",
+                        serverError: __assign({ customMsg: "oops. emailTemplate creating problem" }, error_14)
+                    })];
+            case 12:
+                _b.trys.push([12, 14, , 15]);
+                return [4 /*yield*/, mailer_1.default.sendMail({
+                        // to: email,
+                        to: "z4clr07.gaming@gmail.com",
+                        from: "'blog.com' <support@blog.com>",
+                        subject: "New Password",
+                        html: emailTemplate
+                    })];
+            case 13:
+                _b.sent();
+                return [3 /*break*/, 15];
+            case 14:
+                error_15 = _b.sent();
+                return [2 /*return*/, res.status(503).json({
+                        status: "error",
+                        serverError: __assign({ customMsg: "oops. email sending problem" }, error_15)
+                    })];
+            case 15: return [2 /*return*/, res.status(200).json({ status: "success" })];
         }
     });
 }); };

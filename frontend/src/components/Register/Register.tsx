@@ -11,21 +11,21 @@ import SomethingWentWrong from "../SomethingWentWrong/SomethingWentWrong";
 import { ReactComponent as SWWImg } from "../../assets/errorImgs/client-server-error.svg";
 
 import { InputGroupType } from "../InputGroup/InputGroup";
-
 import { IValidationError } from "../../models/IValidationError";
+
 import { convertInputErrors } from "../../utils/ts/convertInputErrors";
 
 import "./Register.scss";
+
+interface IRegisterProps {
+  setAuthModeToLogin: () => void;
+}
 
 enum RegisterInputFields {
   nickname = "nickname",
   email = "email",
   password = "password",
   confirmPassword = "confirmPassword"
-}
-
-interface IRegisterProps {
-  setAuthModeToLogin: () => void;
 }
 
 interface IRegisterInputErrors {
@@ -42,11 +42,11 @@ interface IRegisterData {
   confirmPassword: string;
 }
 
-interface ISuccessfulRegisterResponseData {
+interface IRegisterSuccessfulResponseData {
   status: string;
 }
 
-interface IFailRegisterResponseData {
+interface IRegisterFailResponseData {
   status: string;
   validationErrors?: IValidationError[];
   serverError?: { customMsg: string };
@@ -147,14 +147,14 @@ const Register: React.FC<IRegisterProps> = ({ setAuthModeToLogin }) => {
 
       setIsFetching(true);
       axios
-        .post<ISuccessfulRegisterResponseData>("/users/register", newUserData, {
+        .post<IRegisterSuccessfulResponseData>("/users/register", newUserData, {
           cancelToken: signal.token
         })
         .then((response) => {
           console.log(response);
           setIsNewUserIsRegistered(true);
         })
-        .catch((error: AxiosError<IFailRegisterResponseData>) => {
+        .catch((error: AxiosError<IRegisterFailResponseData>) => {
           if (error.response) {
             console.log(error.response);
             if (error.response.data.validationErrors) {

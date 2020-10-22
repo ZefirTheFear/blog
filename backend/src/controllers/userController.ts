@@ -14,19 +14,19 @@ import User, { IUser } from "../models/UserModel";
 import UserActivator, { IUserActivator } from "../models/UserActivatorModel";
 import { IValidationError } from "./../validations/IValidationError";
 
-interface IRegisterUserReqBody {
+interface IRegisterUserRequestBody {
   nickname: string;
   email: string;
   password: string;
 }
-interface IRegisterUserResBody {
+interface IRegisterUserResponseBody {
   status: string;
   serverError?: { customMsg: string };
 }
 export const registerUser: RequestHandler<
   ParamsDictionary,
-  IRegisterUserResBody,
-  IRegisterUserReqBody
+  IRegisterUserResponseBody,
+  IRegisterUserRequestBody
 > = async (req, res) => {
   const { nickname, email, password } = req.body;
 
@@ -100,7 +100,6 @@ export const registerUser: RequestHandler<
     });
   }
 
-  // return res.status(201).json({ status: "success", data: { savedUser, savedUserActivator } });
   return res.status(201).json({ status: "success" });
 };
 
@@ -108,13 +107,13 @@ interface IActivateUserParams {
   userId: string;
   hash: string;
 }
-interface IActivateUserResBody {
+interface IActivateUserResponseBody {
   status?: string;
   serverError?: { customMsg: string };
 }
 export const activateUser: RequestHandler<
   IActivateUserParams,
-  IActivateUserResBody | string
+  IActivateUserResponseBody | string
 > = async (req, res) => {
   const userId = req.params.userId;
   const hash = req.params.hash;
@@ -172,11 +171,11 @@ export const activateUser: RequestHandler<
   );
 };
 
-interface ILoginUserReqBody {
+interface ILoginUserRequestBody {
   nickname: string;
   password: string;
 }
-interface ILoginUserResBody {
+interface ILoginUserResponseBody {
   status: string;
   jwtToken?: string;
   user?: IUser;
@@ -186,8 +185,8 @@ interface ILoginUserResBody {
 }
 export const loginUser: RequestHandler<
   ParamsDictionary,
-  ILoginUserResBody,
-  ILoginUserReqBody
+  ILoginUserResponseBody,
+  ILoginUserRequestBody
 > = async (req, res) => {
   const { nickname, password } = req.body;
 
@@ -234,12 +233,12 @@ export const loginUser: RequestHandler<
     .json({ status: "success", jwtToken: token, user: jsonUser, expiresInMs: 24 * 3600 * 1000 });
 };
 
-interface ICheckUserReqBody {
+interface ICheckUserRequestBody {
   nickname: string;
   password: string;
   userId: string;
 }
-interface ICheckUserResBody {
+interface ICheckUserResponseBody {
   status: string;
   jwtToken?: string;
   user?: IUser;
@@ -249,8 +248,8 @@ interface ICheckUserResBody {
 }
 export const checkUser: RequestHandler<
   ParamsDictionary,
-  ICheckUserResBody,
-  ICheckUserReqBody
+  ICheckUserResponseBody,
+  ICheckUserRequestBody
 > = async (req, res) => {
   const { userId } = req.body;
 
@@ -266,4 +265,81 @@ export const checkUser: RequestHandler<
     return res.status(404).json({ status: "error", serverError: { customMsg: "user not found" } });
   }
   return res.json({ status: "success", user });
+};
+
+interface IResetPasswordRequestBody {
+  nickname: string;
+  email: string;
+}
+interface IResetPasswordResponseBody {
+  status: string;
+  serverError?: { customMsg: string };
+  validationErrors?: IValidationError[];
+}
+export const resetPassword: RequestHandler<
+  ParamsDictionary,
+  IResetPasswordResponseBody,
+  IResetPasswordRequestBody
+> = async (req, res) => {
+  const { nickname, email } = req.body;
+
+  let user: IUser | null;
+  try {
+    user = await User.findOne({ nickname, email });
+  } catch (error) {
+    return res
+      .status(400)
+      .json({ status: "error", serverError: { customMsg: "bad request", ...error } });
+  }
+  if (!user) {
+    return res.status(404).json({
+      status: "error",
+      validationErrors: [
+        { param: "nickname", msg: "user not found" },
+        { param: "email", msg: "user not found" }
+      ]
+    });
+  }
+
+  const newPassword = `NP${uuid().slice(0, 8)}`;
+  const hashedPassword = await bcrypt.hash(newPassword, 12);
+  user.password = hashedPassword;
+  try {
+    await user.save();
+  } catch (error) {
+    return res.status(503).json({
+      status: "error",
+      serverError: { customMsg: "oops. user updating problem", ...error }
+    });
+  }
+
+  let emailTemplate: string;
+  try {
+    emailTemplate = await ejs.renderFile(path.join(__dirname, "../views/resetPassword.ejs"), {
+      nickname,
+      newPassword
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: "error",
+      serverError: { customMsg: "oops. emailTemplate creating problem", ...error }
+    });
+  }
+
+  try {
+    await transporter.sendMail({
+      // to: email,
+      to: "z4clr07.gaming@gmail.com",
+      from: "'blog.com' <support@blog.com>",
+      subject: "New Password",
+      html: emailTemplate
+    });
+  } catch (error) {
+    return res.status(503).json({
+      status: "error",
+      serverError: { customMsg: "oops. email sending problem", ...error }
+    });
+  }
+
+  return res.status(200).json({ status: "success" });
 };
