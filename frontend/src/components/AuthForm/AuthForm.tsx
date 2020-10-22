@@ -6,13 +6,17 @@ import ForgotPassword from "../ForgotPassword/ForgotPassword";
 
 import "./AuthForm.scss";
 
+interface IAuthFromProps {
+  closeAuthModal: () => void;
+}
+
 enum AuthMode {
   login = "login",
   register = "register",
   forgotPassword = "forgotPassword"
 }
 
-const AuthForm: React.FC = () => {
+const AuthForm: React.FC<IAuthFromProps> = ({ closeAuthModal }) => {
   const [authMode, setAuthMode] = useState<AuthMode>(AuthMode.login);
 
   const setAuthModeToRegister = useCallback(() => {
@@ -31,6 +35,7 @@ const AuthForm: React.FC = () => {
         <Login
           setAuthModeToRegister={setAuthModeToRegister}
           setAuthModeToForgotPassword={setAuthModeToForgotPassword}
+          closeAuthModal={closeAuthModal}
         />
       ) : authMode === AuthMode.register ? (
         <Register setAuthModeToLogin={setAuthModeToLogin} />

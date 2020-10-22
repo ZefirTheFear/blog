@@ -1,11 +1,29 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import cloneDeep from "clone-deep";
+import axios, { AxiosError } from "axios";
+import { useDispatch } from "react-redux";
 
 import InputGroup from "../InputGroup/InputGroup";
+import Spinner from "../Spinner/Spinner";
+import SomethingWentWrong from "../SomethingWentWrong/SomethingWentWrong";
+import { ReactComponent as SWWImg } from "../../assets/errorImgs/client-server-error.svg";
 
 import { InputGroupType } from "../InputGroup/InputGroup";
 
+import { IUser } from "../../models/IUser";
+import { IValidationError } from "../../models/IValidationError";
+import { convertInputErrors } from "../../utils/ts/convertInputErrors";
+import { LocalStorageItems } from "../../models/LocalStorageItems";
+
+import * as userActions from "../../redux/actions/userActions/userActionCreators";
+
 import "./Login.scss";
+
+interface ILoginProps {
+  setAuthModeToRegister: () => void;
+  setAuthModeToForgotPassword: () => void;
+  closeAuthModal: () => void;
+}
 
 enum LoginInputFields {
   nickname = "nickname",
@@ -17,15 +35,39 @@ interface ILoginInputErrors {
   password?: string[];
 }
 
-interface ILoginProps {
-  setAuthModeToRegister: () => void;
-  setAuthModeToForgotPassword: () => void;
+interface ILoginData {
+  nickname: string;
+  password: string;
 }
 
-const Login: React.FC<ILoginProps> = ({ setAuthModeToRegister, setAuthModeToForgotPassword }) => {
+interface ISuccessfulLoginResponseData {
+  status: string;
+  jwtToken: string;
+  user: IUser;
+  expiresInMs: number;
+}
+
+interface IFailLoginResponseData {
+  status: string;
+  serverError?: { customMsg: string };
+  validationErrors?: IValidationError[];
+}
+
+const signal = axios.CancelToken.source();
+
+const Login: React.FC<ILoginProps> = ({
+  setAuthModeToRegister,
+  setAuthModeToForgotPassword,
+  closeAuthModal
+}) => {
+  const dispatch = useDispatch();
+
   const [nickname, setNickname] = useState("");
   const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState<ILoginInputErrors>({});
+  const [inputErrors, setInputErrors] = useState<ILoginInputErrors>({});
+
+  const [isFetching, setIsFetching] = useState(false);
+  const [isSomethingWentWrong, setIsSomethingWentWrong] = useState(false);
 
   const changeInputValue = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.name === LoginInputFields.nickname) {
@@ -38,11 +80,11 @@ const Login: React.FC<ILoginProps> = ({ setAuthModeToRegister, setAuthModeToForg
 
   const focusInput = useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
-      const newErrors = cloneDeep(errors);
+      const newErrors = cloneDeep(inputErrors);
       delete newErrors[e.target.name as LoginInputFields];
-      return setErrors(newErrors);
+      return setInputErrors(newErrors);
     },
-    [errors]
+    [inputErrors]
   );
 
   const validate = useCallback(() => {
@@ -63,20 +105,79 @@ const Login: React.FC<ILoginProps> = ({ setAuthModeToRegister, setAuthModeToForg
     }
   }, [nickname, password]);
 
+  const loginHandler = useCallback(
+    (data: ISuccessfulLoginResponseData) => {
+      localStorage.setItem(LocalStorageItems.jwtToken, data.jwtToken);
+      const remainingMilliseconds = data.expiresInMs;
+      const expiryDate = new Date(new Date().getTime() + remainingMilliseconds);
+      localStorage.setItem(LocalStorageItems.expiryDate, expiryDate.toString());
+      dispatch(userActions.setUser(data.user));
+      dispatch(userActions.setIsAuth(true));
+    },
+    [dispatch]
+  );
+
   const logIn = useCallback(
     (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
-      console.log("in progress");
 
       const validationResult = validate();
       console.log(validationResult);
 
       if (validationResult) {
-        return setErrors(validationResult);
+        return setInputErrors(validationResult);
       }
+
+      const userData: ILoginData = {
+        nickname,
+        password
+      };
+
+      setIsFetching(true);
+      axios
+        .post<ISuccessfulLoginResponseData>("/users/login", userData, {
+          cancelToken: signal.token
+        })
+        .then((response) => {
+          console.log(response.data);
+          loginHandler(response.data);
+          closeAuthModal();
+        })
+        .catch((error: AxiosError<IFailLoginResponseData>) => {
+          if (error.response) {
+            console.log(error.response);
+            if (error.response.data.validationErrors) {
+              const inputErrors = convertInputErrors(error.response.data.validationErrors);
+              setInputErrors(inputErrors);
+            } else {
+              setIsSomethingWentWrong(true);
+            }
+          }
+          setIsFetching(false);
+        });
     },
-    [validate]
+    [closeAuthModal, loginHandler, nickname, password, validate]
   );
+
+  const closeSWWModal = useCallback(() => {
+    setIsSomethingWentWrong(false);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      signal.cancel();
+    };
+  }, []);
+
+  if (isFetching) {
+    return <Spinner />;
+  }
+
+  if (isSomethingWentWrong) {
+    return (
+      <SomethingWentWrong Img={SWWImg} closeSWWModal={closeSWWModal} msg={"something went wrong"} />
+    );
+  }
 
   return (
     <div className="login">
@@ -86,7 +187,7 @@ const Login: React.FC<ILoginProps> = ({ setAuthModeToRegister, setAuthModeToForg
           <InputGroup
             type={InputGroupType.plain}
             inputType="text"
-            {...(errors.nickname ? { errors: errors.nickname } : {})}
+            {...(inputErrors.nickname ? { errors: inputErrors.nickname } : {})}
             name={LoginInputFields.nickname}
             placeholder="nickname"
             value={nickname}
@@ -98,7 +199,7 @@ const Login: React.FC<ILoginProps> = ({ setAuthModeToRegister, setAuthModeToForg
           <InputGroup
             type={InputGroupType.password}
             inputType="password"
-            {...(errors.password ? { errors: errors.password } : {})}
+            {...(inputErrors.password ? { errors: inputErrors.password } : {})}
             name={LoginInputFields.password}
             placeholder="password"
             value={password}

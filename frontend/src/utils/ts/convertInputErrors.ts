@@ -1,9 +1,6 @@
 import cloneDeep from "clone-deep";
 
-interface IValidationError {
-  msg: string;
-  param: string;
-}
+import { IValidationError } from "../../models/IValidationError";
 
 interface IInputErrors {
   [key: string]: string[];

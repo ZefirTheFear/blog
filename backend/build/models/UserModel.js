@@ -24,7 +24,8 @@ var UserSchema = new mongoose_1.Schema({
     },
     password: {
         type: String,
-        required: true
+        required: true,
+        select: false
     },
     avatar: {
         type: Object,
@@ -38,4 +39,10 @@ var UserSchema = new mongoose_1.Schema({
         default: UserStatus.user
     }
 }, { timestamps: true });
+// UserSchema.set("toJSON", {
+//   transform: (_, ret) => {
+//     delete ret.password;
+//     return ret;
+//   }
+// });
 exports.default = mongoose_1.model("User", UserSchema);

@@ -1,15 +1,18 @@
 import { RequestHandler } from "express";
-import { validationResult } from "express-validator";
+import { ParamsDictionary } from "express-serve-static-core";
 import bcrypt from "bcryptjs";
 import { v4 as uuid } from "uuid";
 import path from "path";
 import ejs from "ejs";
+import jwt from "jsonwebtoken";
+
+import { jwtPayload } from "./../models/jwtPayload";
 
 import transporter from "../core/mailer";
 
-import { IValidationError } from "../validations/IValidationError";
 import User, { IUser } from "../models/UserModel";
 import UserActivator, { IUserActivator } from "../models/UserActivatorModel";
+import { IValidationError } from "./../validations/IValidationError";
 
 interface IRegisterUserReqBody {
   nickname: string;
@@ -18,29 +21,13 @@ interface IRegisterUserReqBody {
 }
 interface IRegisterUserResBody {
   status: string;
-  validationErrors?: IValidationError[];
-  serverError?: { msg: string };
-  data?: { savedUser: IUser; savedUserActivator: IUserActivator };
+  serverError?: { customMsg: string };
 }
 export const registerUser: RequestHandler<
-  undefined,
+  ParamsDictionary,
   IRegisterUserResBody,
   IRegisterUserReqBody
 > = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    const myValidationResult = validationResult.withDefaults({
-      formatter: (error) => {
-        return {
-          msg: error.msg,
-          param: error.param
-        };
-      }
-    });
-    const newErrors = myValidationResult(req);
-    return res.status(422).json({ status: "error", validationErrors: newErrors.array() });
-  }
-
   const { nickname, email, password } = req.body;
 
   let hashedPassword: string;
@@ -49,7 +36,7 @@ export const registerUser: RequestHandler<
   } catch (error) {
     return res
       .status(500)
-      .json({ status: "error", serverError: { msg: "oops. some problems", ...error } });
+      .json({ status: "error", serverError: { customMsg: "oops. some problems", ...error } });
   }
 
   const newUser = new User({ nickname, email, password: hashedPassword });
@@ -59,8 +46,7 @@ export const registerUser: RequestHandler<
   } catch (error) {
     return res.status(503).json({
       status: "error",
-      serverError: { msg: "oops. user creating problem" },
-      ...error
+      serverError: { customMsg: "oops. user creating problem", ...error }
     });
   }
 
@@ -76,8 +62,7 @@ export const registerUser: RequestHandler<
     await savedUser.remove();
     return res.status(503).json({
       status: "error",
-      serverError: { msg: "oops. user activator creating problem" },
-      ...error
+      serverError: { customMsg: "oops. user activator creating problem", ...error }
     });
   }
 
@@ -94,8 +79,7 @@ export const registerUser: RequestHandler<
     await savedUserActivator.remove();
     return res.status(500).json({
       status: "error",
-      serverError: { msg: "oops. emailTemplate creating problem" },
-      ...error
+      serverError: { customMsg: "oops. emailTemplate creating problem", ...error }
     });
   }
 
@@ -110,12 +94,14 @@ export const registerUser: RequestHandler<
   } catch (error) {
     await savedUser.remove();
     await savedUserActivator.remove();
-    return res
-      .status(503)
-      .json({ status: "error", serverError: { msg: "oops. email sending problem" }, ...error });
+    return res.status(503).json({
+      status: "error",
+      serverError: { customMsg: "oops. email sending problem", ...error }
+    });
   }
 
-  return res.status(201).json({ status: "success", data: { savedUser, savedUserActivator } });
+  // return res.status(201).json({ status: "success", data: { savedUser, savedUserActivator } });
+  return res.status(201).json({ status: "success" });
 };
 
 interface IActivateUserParams {
@@ -123,13 +109,13 @@ interface IActivateUserParams {
   hash: string;
 }
 interface IActivateUserResBody {
-  status: string;
-  serverError?: { msg: string };
+  status?: string;
+  serverError?: { customMsg: string };
 }
-export const activateUser: RequestHandler<IActivateUserParams, IActivateUserResBody> = async (
-  req,
-  res
-) => {
+export const activateUser: RequestHandler<
+  IActivateUserParams,
+  IActivateUserResBody | string
+> = async (req, res) => {
   const userId = req.params.userId;
   const hash = req.params.hash;
 
@@ -137,20 +123,26 @@ export const activateUser: RequestHandler<IActivateUserParams, IActivateUserResB
   try {
     activation = await UserActivator.findOne({ userId, hash });
   } catch (error) {
-    return res.status(404).json({ status: "error", serverError: { msg: "invalid link" } });
+    return res
+      .status(400)
+      .json({ status: "error", serverError: { customMsg: "bad request", ...error } });
   }
   if (!activation) {
-    return res.status(404).json({ status: "error", serverError: { msg: "actiovation not found" } });
+    return res
+      .status(404)
+      .json({ status: "error", serverError: { customMsg: "actiovation not found" } });
   }
 
   let user: IUser | null;
   try {
     user = await User.findById(userId);
   } catch (error) {
-    return res.status(404).json({ status: "error", serverError: { msg: "invalid link" } });
+    return res
+      .status(400)
+      .json({ status: "error", serverError: { customMsg: "bad request", ...error } });
   }
   if (!user) {
-    return res.status(404).json({ status: "error", serverError: { msg: "user not found" } });
+    return res.status(404).json({ status: "error", serverError: { customMsg: "user not found" } });
   }
 
   user.isActive = true;
@@ -159,8 +151,7 @@ export const activateUser: RequestHandler<IActivateUserParams, IActivateUserResB
   } catch (error) {
     return res.status(503).json({
       status: "error",
-      serverError: { msg: "oops. user updating problem" },
-      ...error
+      serverError: { customMsg: "oops. user updating problem", ...error }
     });
   }
 
@@ -169,14 +160,110 @@ export const activateUser: RequestHandler<IActivateUserParams, IActivateUserResB
   } catch (error) {
     return res.status(503).json({
       status: "error",
-      serverError: { msg: "oops. userActivator removing problem" },
-      ...error
+      serverError: { customMsg: "oops. userActivator removing problem", ...error }
     });
   }
   return (
     res
       .status(200)
       // .redirect("http://localhost:3000")
-      .json({ status: "success" })
+      // .json({ status: "success" })
+      .send("<script>window.close()</script>")
   );
+};
+
+interface ILoginUserReqBody {
+  nickname: string;
+  password: string;
+}
+interface ILoginUserResBody {
+  status: string;
+  jwtToken?: string;
+  user?: IUser;
+  expiresInMs?: number;
+  serverError?: { customMsg: string };
+  validationErrors?: IValidationError[];
+}
+export const loginUser: RequestHandler<
+  ParamsDictionary,
+  ILoginUserResBody,
+  ILoginUserReqBody
+> = async (req, res) => {
+  const { nickname, password } = req.body;
+
+  let user: IUser | null;
+  try {
+    user = await User.findOne({ nickname }).select("+password");
+  } catch (error) {
+    return res
+      .status(400)
+      .json({ status: "error", serverError: { customMsg: "bad request", ...error } });
+  }
+  if (!user) {
+    return res
+      .status(404)
+      .json({ status: "error", validationErrors: [{ param: "nickname", msg: "user not found" }] });
+  }
+
+  const result = await bcrypt.compare(password, user.password);
+  if (!result) {
+    return res
+      .status(403)
+      .json({ status: "error", validationErrors: [{ param: "password", msg: "wrong password" }] });
+  }
+
+  if (!user.isActive) {
+    return res.status(400).json({
+      status: "error",
+      validationErrors: [{ param: "nickname", msg: "please activate user" }]
+    });
+  }
+
+  const payload: jwtPayload = { userId: user._id };
+  // const token = jwt.sign({ userId: user._id }, process.env.JWT_KEY as jwt.Secret, {
+  const token = jwt.sign(payload, process.env.JWT_KEY as jwt.Secret, {
+    expiresIn: 24 * 3600
+  });
+
+  const jsonUser = user.toJSON();
+  if (jsonUser.password) {
+    delete jsonUser.password;
+  }
+  return res
+    .status(200)
+    .json({ status: "success", jwtToken: token, user: jsonUser, expiresInMs: 24 * 3600 * 1000 });
+};
+
+interface ICheckUserReqBody {
+  nickname: string;
+  password: string;
+  userId: string;
+}
+interface ICheckUserResBody {
+  status: string;
+  jwtToken?: string;
+  user?: IUser;
+  expiresInMs?: number;
+  serverError?: { customMsg: string };
+  validationErrors?: IValidationError[];
+}
+export const checkUser: RequestHandler<
+  ParamsDictionary,
+  ICheckUserResBody,
+  ICheckUserReqBody
+> = async (req, res) => {
+  const { userId } = req.body;
+
+  let user: IUser | null;
+  try {
+    user = await User.findById(userId);
+  } catch (error) {
+    return res
+      .status(400)
+      .json({ status: "error", serverError: { customMsg: "bad request", ...error } });
+  }
+  if (!user) {
+    return res.status(404).json({ status: "error", serverError: { customMsg: "user not found" } });
+  }
+  return res.json({ status: "success", user });
 };

@@ -2,9 +2,7 @@ import * as darkThemeActionTypes from "./darkThemeActionTypes";
 
 export const setIsDarkTheme = (isDarkTheme: boolean): darkThemeActionTypes.ISetIsDarkTheme => ({
   type: darkThemeActionTypes.SET_IS_DARK_THEME,
-  payload: {
-    isDarkTheme
-  }
+  payload: { isDarkTheme }
 });
 
 export const toggleDarkTheme = (): darkThemeActionTypes.IToggleDarkTheme => ({

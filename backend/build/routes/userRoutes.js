@@ -23,9 +23,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var express_1 = __importDefault(require("express"));
-var registerValidation_1 = __importDefault(require("../validations/registerValidation"));
+var checkValidationResult_1 = require("../middleware/checkValidationResult");
+var registerValidation_1 = require("../validations/registerValidation");
+var loginValidation_1 = require("./../validations/loginValidation");
 var userController = __importStar(require("../controllers/userController"));
+var isAuth_1 = require("./../middleware/isAuth");
 var router = express_1.default.Router();
-router.post("/register", registerValidation_1.default, userController.registerUser);
+router.post("/register", registerValidation_1.registerValidation, checkValidationResult_1.checkValidationResult, userController.registerUser);
 router.get("/activation/:userId/:hash", userController.activateUser);
+router.post("/login", loginValidation_1.loginValidation, checkValidationResult_1.checkValidationResult, userController.loginUser);
+router.get("/check-user", isAuth_1.isAuth, userController.checkUser);
 exports.default = router;

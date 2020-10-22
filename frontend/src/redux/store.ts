@@ -2,6 +2,7 @@ import { createStore, combineReducers } from "redux";
 
 import darkThemeReducer from "./reducers/darkThemeReducer";
 import mobileSearchFormReducer from "./reducers/mobileSearchFormReducer";
+import userReducer from "./reducers/userReducer";
 
 declare global {
   interface Window {
@@ -11,7 +12,8 @@ declare global {
 
 const rootReducer = combineReducers({
   darkTheme: darkThemeReducer,
-  mobileSearchForm: mobileSearchFormReducer
+  mobileSearchForm: mobileSearchFormReducer,
+  user: userReducer
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

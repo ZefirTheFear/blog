@@ -2,7 +2,7 @@ import { body } from "express-validator";
 
 import User from "../models/UserModel";
 
-const registerValidations = [
+export const registerValidation = [
   body("nickname")
     .isString()
     .withMessage("only a string")
@@ -46,5 +46,3 @@ const registerValidations = [
     return true;
   })
 ];
-
-export default registerValidations;

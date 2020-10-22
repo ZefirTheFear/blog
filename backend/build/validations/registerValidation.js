@@ -39,9 +39,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.registerValidation = void 0;
 var express_validator_1 = require("express-validator");
 var UserModel_1 = __importDefault(require("../models/UserModel"));
-var registerValidations = [
+exports.registerValidation = [
     express_validator_1.body("nickname")
         .isString()
         .withMessage("only a string")
@@ -102,4 +103,3 @@ var registerValidations = [
         return true;
     })
 ];
-exports.default = registerValidations;

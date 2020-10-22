@@ -4,19 +4,18 @@ import validator from "validator";
 import axios, { AxiosError } from "axios";
 
 import InputGroup from "../InputGroup/InputGroup";
-
-import { InputGroupType } from "../InputGroup/InputGroup";
-
-import { convertInputErrors } from "../../utils/ts/convertInputErrors";
-
-import { ReactComponent as SWWImg } from "../../assets/errorImgs/client-server-error.svg";
-
 import Spinner from "../Spinner/Spinner";
 import Modal from "../Modal/Modal";
 import Confirm from "../Confirm/Confirm";
+import SomethingWentWrong from "../SomethingWentWrong/SomethingWentWrong";
+import { ReactComponent as SWWImg } from "../../assets/errorImgs/client-server-error.svg";
+
+import { InputGroupType } from "../InputGroup/InputGroup";
+
+import { IValidationError } from "../../models/IValidationError";
+import { convertInputErrors } from "../../utils/ts/convertInputErrors";
 
 import "./Register.scss";
-import SomethingWentWrong from "../SomethingWentWrong/SomethingWentWrong";
 
 enum RegisterInputFields {
   nickname = "nickname",
@@ -25,11 +24,8 @@ enum RegisterInputFields {
   confirmPassword = "confirmPassword"
 }
 
-interface IRegisterData {
-  nickname: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
+interface IRegisterProps {
+  setAuthModeToLogin: () => void;
 }
 
 interface IRegisterInputErrors {
@@ -39,8 +35,21 @@ interface IRegisterInputErrors {
   confirmPassword?: string[];
 }
 
-interface IRegisterProps {
-  setAuthModeToLogin: () => void;
+interface IRegisterData {
+  nickname: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+interface ISuccessfulRegisterResponseData {
+  status: string;
+}
+
+interface IFailRegisterResponseData {
+  status: string;
+  validationErrors?: IValidationError[];
+  serverError?: { customMsg: string };
 }
 
 const signal = axios.CancelToken.source();
@@ -138,21 +147,22 @@ const Register: React.FC<IRegisterProps> = ({ setAuthModeToLogin }) => {
 
       setIsFetching(true);
       axios
-        .post("/users/register", newUserData, { cancelToken: signal.token })
+        .post<ISuccessfulRegisterResponseData>("/users/register", newUserData, {
+          cancelToken: signal.token
+        })
         .then((response) => {
           console.log(response);
           setIsNewUserIsRegistered(true);
         })
-        .catch((error: AxiosError) => {
+        .catch((error: AxiosError<IFailRegisterResponseData>) => {
           if (error.response) {
             console.log(error.response);
-          }
-          if (error.response?.status === 422) {
-            const inputErrors = convertInputErrors(error.response.data.validationErrors);
-            setInputErrors(inputErrors);
-          }
-          if (error.response?.status === 503 || error.response?.status === 500) {
-            setIsSomethingWentWrong(true);
+            if (error.response.data.validationErrors) {
+              const inputErrors = convertInputErrors(error.response.data.validationErrors!);
+              setInputErrors(inputErrors);
+            } else {
+              setIsSomethingWentWrong(true);
+            }
           }
         })
         .finally(() => setIsFetching(false));
@@ -182,7 +192,10 @@ const Register: React.FC<IRegisterProps> = ({ setAuthModeToLogin }) => {
   if (isNewUserIsRegistered) {
     return (
       <Modal closeModal={closeNewUserModal}>
-        <Confirm msg={"activation sent to your email"} onClick={closeNewUserModal} />
+        <Confirm
+          msg={"activation sent to your email. \n activate your profile before login"}
+          onClick={closeNewUserModal}
+        />
       </Modal>
     );
   }

@@ -50,33 +50,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.activateUser = exports.registerUser = void 0;
-var express_validator_1 = require("express-validator");
+exports.checkUser = exports.loginUser = exports.activateUser = exports.registerUser = void 0;
 var bcryptjs_1 = __importDefault(require("bcryptjs"));
 var uuid_1 = require("uuid");
 var path_1 = __importDefault(require("path"));
 var ejs_1 = __importDefault(require("ejs"));
+var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 var mailer_1 = __importDefault(require("../core/mailer"));
 var UserModel_1 = __importDefault(require("../models/UserModel"));
 var UserActivatorModel_1 = __importDefault(require("../models/UserActivatorModel"));
 exports.registerUser = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, myValidationResult, newErrors, _a, nickname, email, password, hashedPassword, error_1, newUser, savedUser, error_2, hash, newUserActivator, savedUserActivator, error_3, emailTemplate, error_4, error_5;
+    var _a, nickname, email, password, hashedPassword, error_1, newUser, savedUser, error_2, hash, newUserActivator, savedUserActivator, error_3, emailTemplate, error_4, error_5;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                errors = express_validator_1.validationResult(req);
-                if (!errors.isEmpty()) {
-                    myValidationResult = express_validator_1.validationResult.withDefaults({
-                        formatter: function (error) {
-                            return {
-                                msg: error.msg,
-                                param: error.param
-                            };
-                        }
-                    });
-                    newErrors = myValidationResult(req);
-                    return [2 /*return*/, res.status(422).json({ status: "error", validationErrors: newErrors.array() })];
-                }
                 _a = req.body, nickname = _a.nickname, email = _a.email, password = _a.password;
                 _b.label = 1;
             case 1:
@@ -89,7 +76,7 @@ exports.registerUser = function (req, res) { return __awaiter(void 0, void 0, vo
                 error_1 = _b.sent();
                 return [2 /*return*/, res
                         .status(500)
-                        .json({ status: "error", serverError: __assign({ msg: "oops. some problems" }, error_1) })];
+                        .json({ status: "error", serverError: __assign({ customMsg: "oops. some problems" }, error_1) })];
             case 4:
                 newUser = new UserModel_1.default({ nickname: nickname, email: email, password: hashedPassword });
                 _b.label = 5;
@@ -101,7 +88,10 @@ exports.registerUser = function (req, res) { return __awaiter(void 0, void 0, vo
                 return [3 /*break*/, 8];
             case 7:
                 error_2 = _b.sent();
-                return [2 /*return*/, res.status(503).json(__assign({ status: "error", serverError: { msg: "oops. user creating problem" } }, error_2))];
+                return [2 /*return*/, res.status(503).json({
+                        status: "error",
+                        serverError: __assign({ customMsg: "oops. user creating problem" }, error_2)
+                    })];
             case 8:
                 hash = uuid_1.v4();
                 newUserActivator = new UserActivatorModel_1.default({
@@ -120,7 +110,10 @@ exports.registerUser = function (req, res) { return __awaiter(void 0, void 0, vo
                 return [4 /*yield*/, savedUser.remove()];
             case 12:
                 _b.sent();
-                return [2 /*return*/, res.status(503).json(__assign({ status: "error", serverError: { msg: "oops. user activator creating problem" } }, error_3))];
+                return [2 /*return*/, res.status(503).json({
+                        status: "error",
+                        serverError: __assign({ customMsg: "oops. user activator creating problem" }, error_3)
+                    })];
             case 13:
                 _b.trys.push([13, 15, , 18]);
                 return [4 /*yield*/, ejs_1.default.renderFile(path_1.default.join(__dirname, "../views/register.ejs"), {
@@ -140,7 +133,10 @@ exports.registerUser = function (req, res) { return __awaiter(void 0, void 0, vo
                 return [4 /*yield*/, savedUserActivator.remove()];
             case 17:
                 _b.sent();
-                return [2 /*return*/, res.status(500).json(__assign({ status: "error", serverError: { msg: "oops. emailTemplate creating problem" } }, error_4))];
+                return [2 /*return*/, res.status(500).json({
+                        status: "error",
+                        serverError: __assign({ customMsg: "oops. emailTemplate creating problem" }, error_4)
+                    })];
             case 18:
                 _b.trys.push([18, 20, , 23]);
                 return [4 /*yield*/, mailer_1.default.sendMail({
@@ -161,10 +157,13 @@ exports.registerUser = function (req, res) { return __awaiter(void 0, void 0, vo
                 return [4 /*yield*/, savedUserActivator.remove()];
             case 22:
                 _b.sent();
-                return [2 /*return*/, res
-                        .status(503)
-                        .json(__assign({ status: "error", serverError: { msg: "oops. email sending problem" } }, error_5))];
-            case 23: return [2 /*return*/, res.status(201).json({ status: "success", data: { savedUser: savedUser, savedUserActivator: savedUserActivator } })];
+                return [2 /*return*/, res.status(503).json({
+                        status: "error",
+                        serverError: __assign({ customMsg: "oops. email sending problem" }, error_5)
+                    })];
+            case 23: 
+            // return res.status(201).json({ status: "success", data: { savedUser, savedUserActivator } });
+            return [2 /*return*/, res.status(201).json({ status: "success" })];
         }
     });
 }); };
@@ -184,10 +183,14 @@ exports.activateUser = function (req, res) { return __awaiter(void 0, void 0, vo
                 return [3 /*break*/, 4];
             case 3:
                 error_6 = _a.sent();
-                return [2 /*return*/, res.status(404).json({ status: "error", serverError: { msg: "invalid link" } })];
+                return [2 /*return*/, res
+                        .status(400)
+                        .json({ status: "error", serverError: __assign({ customMsg: "bad request" }, error_6) })];
             case 4:
                 if (!activation) {
-                    return [2 /*return*/, res.status(404).json({ status: "error", serverError: { msg: "actiovation not found" } })];
+                    return [2 /*return*/, res
+                            .status(404)
+                            .json({ status: "error", serverError: { customMsg: "actiovation not found" } })];
                 }
                 _a.label = 5;
             case 5:
@@ -198,10 +201,12 @@ exports.activateUser = function (req, res) { return __awaiter(void 0, void 0, vo
                 return [3 /*break*/, 8];
             case 7:
                 error_7 = _a.sent();
-                return [2 /*return*/, res.status(404).json({ status: "error", serverError: { msg: "invalid link" } })];
+                return [2 /*return*/, res
+                        .status(400)
+                        .json({ status: "error", serverError: __assign({ customMsg: "bad request" }, error_7) })];
             case 8:
                 if (!user) {
-                    return [2 /*return*/, res.status(404).json({ status: "error", serverError: { msg: "user not found" } })];
+                    return [2 /*return*/, res.status(404).json({ status: "error", serverError: { customMsg: "user not found" } })];
                 }
                 user.isActive = true;
                 _a.label = 9;
@@ -213,7 +218,10 @@ exports.activateUser = function (req, res) { return __awaiter(void 0, void 0, vo
                 return [3 /*break*/, 12];
             case 11:
                 error_8 = _a.sent();
-                return [2 /*return*/, res.status(503).json(__assign({ status: "error", serverError: { msg: "oops. user updating problem" } }, error_8))];
+                return [2 /*return*/, res.status(503).json({
+                        status: "error",
+                        serverError: __assign({ customMsg: "oops. user updating problem" }, error_8)
+                    })];
             case 12:
                 _a.trys.push([12, 14, , 15]);
                 return [4 /*yield*/, activation.remove()];
@@ -222,11 +230,93 @@ exports.activateUser = function (req, res) { return __awaiter(void 0, void 0, vo
                 return [3 /*break*/, 15];
             case 14:
                 error_9 = _a.sent();
-                return [2 /*return*/, res.status(503).json(__assign({ status: "error", serverError: { msg: "oops. userActivator removing problem" } }, error_9))];
+                return [2 /*return*/, res.status(503).json({
+                        status: "error",
+                        serverError: __assign({ customMsg: "oops. userActivator removing problem" }, error_9)
+                    })];
             case 15: return [2 /*return*/, (res
                     .status(200)
                     // .redirect("http://localhost:3000")
-                    .json({ status: "success" }))];
+                    // .json({ status: "success" })
+                    .send("<script>window.close()</script>"))];
+        }
+    });
+}); };
+exports.loginUser = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, nickname, password, user, error_10, result, payload, token, jsonUser;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _a = req.body, nickname = _a.nickname, password = _a.password;
+                _b.label = 1;
+            case 1:
+                _b.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, UserModel_1.default.findOne({ nickname: nickname }).select("+password")];
+            case 2:
+                user = _b.sent();
+                return [3 /*break*/, 4];
+            case 3:
+                error_10 = _b.sent();
+                return [2 /*return*/, res
+                        .status(400)
+                        .json({ status: "error", serverError: __assign({ customMsg: "bad request" }, error_10) })];
+            case 4:
+                if (!user) {
+                    return [2 /*return*/, res
+                            .status(404)
+                            .json({ status: "error", validationErrors: [{ param: "nickname", msg: "user not found" }] })];
+                }
+                return [4 /*yield*/, bcryptjs_1.default.compare(password, user.password)];
+            case 5:
+                result = _b.sent();
+                if (!result) {
+                    return [2 /*return*/, res
+                            .status(403)
+                            .json({ status: "error", validationErrors: [{ param: "password", msg: "wrong password" }] })];
+                }
+                if (!user.isActive) {
+                    return [2 /*return*/, res.status(400).json({
+                            status: "error",
+                            validationErrors: [{ param: "nickname", msg: "please activate user" }]
+                        })];
+                }
+                payload = { userId: user._id };
+                token = jsonwebtoken_1.default.sign(payload, process.env.JWT_KEY, {
+                    expiresIn: 24 * 3600
+                });
+                jsonUser = user.toJSON();
+                if (jsonUser.password) {
+                    delete jsonUser.password;
+                }
+                return [2 /*return*/, res
+                        .status(200)
+                        .json({ status: "success", jwtToken: token, user: jsonUser, expiresInMs: 24 * 3600 * 1000 })];
+        }
+    });
+}); };
+exports.checkUser = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var userId, user, error_11;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                userId = req.body.userId;
+                _a.label = 1;
+            case 1:
+                _a.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, UserModel_1.default.findById(userId)];
+            case 2:
+                user = _a.sent();
+                return [3 /*break*/, 4];
+            case 3:
+                error_11 = _a.sent();
+                return [2 /*return*/, res
+                        .status(400)
+                        .json({ status: "error", serverError: __assign({ customMsg: "bad request" }, error_11) })];
+            case 4:
+                if (!user) {
+                    return [2 /*return*/, res.status(404).json({ status: "error", serverError: { customMsg: "user not found" } })];
+                }
+                return [2 /*return*/, res.json({ status: "success", user: user })];
         }
     });
 }); };

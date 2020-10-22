@@ -34,7 +34,8 @@ const UserSchema = new Schema(
     },
     password: {
       type: String,
-      required: true
+      required: true,
+      select: false
     },
     avatar: {
       type: Object,
@@ -51,5 +52,12 @@ const UserSchema = new Schema(
   },
   { timestamps: true }
 );
+
+// UserSchema.set("toJSON", {
+//   transform: (_, ret) => {
+//     delete ret.password;
+//     return ret;
+//   }
+// });
 
 export default model<IUser>("User", UserSchema);

@@ -69,7 +69,7 @@ const Header: React.FC = () => {
         </span>
         {isOpenAuthModal && (
           <Modal closeModal={closeAuthModal}>
-            <AuthForm />
+            <AuthForm closeAuthModal={closeAuthModal} />
           </Modal>
         )}
       </div>

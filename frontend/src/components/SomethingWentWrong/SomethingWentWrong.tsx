@@ -1,5 +1,6 @@
-import React, { useEffect, useCallback } from "react";
-import { useHistory } from "react-router-dom";
+import React, { useEffect } from "react";
+// import { useCallback } from "react";
+// import { useHistory } from "react-router-dom";
 import { createPortal } from "react-dom";
 
 import "./SomethingWentWrong.scss";
@@ -11,11 +12,11 @@ interface ISWWProps {
 }
 
 const SomethingWentWrong: React.FC<ISWWProps> = ({ Img, msg, closeSWWModal }) => {
-  let history = useHistory();
+  // let history = useHistory();
 
-  const goToHomePage = useCallback(() => {
-    history.push("/");
-  }, [history]);
+  // const goToHomePage = useCallback(() => {
+  //   history.push("/");
+  // }, [history]);
 
   useEffect(() => {
     document.documentElement.style.overflow = "hidden";
@@ -31,8 +32,8 @@ const SomethingWentWrong: React.FC<ISWWProps> = ({ Img, msg, closeSWWModal }) =>
       </div>
       <div className="something-went-wrong__msg">{msg}</div>
       <div className="something-went-wrong__btn-group">
-        <button onClick={closeSWWModal}>Try again</button>
-        <button onClick={goToHomePage}>To home page</button>
+        <button onClick={closeSWWModal}>Ok</button>
+        {/* <button onClick={goToHomePage}>To home page</button> */}
       </div>
     </div>,
     document.body
