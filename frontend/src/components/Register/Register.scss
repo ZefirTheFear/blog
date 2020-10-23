@@ -17,6 +17,7 @@
 
 .register__submit-button {
   @include button;
+  margin-bottom: 1rem;
 }
 
 .register__login {

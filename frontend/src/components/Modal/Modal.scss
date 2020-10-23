@@ -20,6 +20,7 @@
 // }
 
 .modal__inner {
+  width: $modal-inner-width;
   padding: 0.5rem 1rem;
   background: $dark-grey-color;
   border-radius: $main-border-radius;

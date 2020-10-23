@@ -1,0 +1,7 @@
+@import "../../utils/css/variables";
+@import "../../utils/css/mixins";
+
+.content-maker__content {
+  border: 1px solid $common-grey-color;
+  border-radius: $main-border-radius;
+}

@@ -1,0 +1,17 @@
+@import "../../utils/css/variables";
+@import "../../utils/css/mixins";
+
+.add-or-edit-post__title {
+  height: 3rem;
+  font-size: 2rem;
+}
+
+.add-or-edit-post__content-maker,
+.add-or-edit-post__tags-maker,
+.add-or-edit-post__submit-btn {
+  margin-top: 1rem;
+}
+
+.add-or-edit-post__submit-btn {
+  @include button;
+}

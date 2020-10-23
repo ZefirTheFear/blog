@@ -1,0 +1,64 @@
+@import "../../utils/css/variables";
+@import "../../utils/css/mixins";
+
+.tags-maker__tags {
+  padding: 0.5rem;
+  border: 1px solid $common-grey-color;
+  border-radius: $main-border-radius;
+
+  display: flex;
+
+  @media (max-width: 767px) {
+    flex-direction: column;
+  }
+}
+
+.tags-maker__input-group {
+  display: flex;
+  align-items: center;
+}
+
+.tags-maker__input-group-inner {
+  width: 250px;
+}
+
+.tags-maker__add {
+  margin-left: 0.5rem;
+  button {
+    @include button;
+
+    svg {
+      display: block;
+    }
+  }
+}
+
+.tags-maker__tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  margin-left: 0.5rem;
+  border-left: 1px solid $common-grey-color;
+
+  @media (max-width: 767px) {
+    border-top: 1px solid $common-grey-color;
+    border-left: 0;
+    margin: 0.5rem 0 0 0;
+    justify-content: center;
+  }
+}
+
+.tags-maker__tag {
+  margin: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.tags-maker__remove-tag {
+  @include svg-icon;
+  margin-bottom: 5px;
+}
+
+.tags-maker__tag-text {
+  font-size: 0.8rem;
+}

@@ -120,7 +120,7 @@ const App: React.FC = () => {
           <Switch>
             <Route exact path="/" component={HomePage} />
             <Route path="/@:nickname" component={ProfilePage} />
-            <Route exact path="/new-post" component={NewPost} />
+            {isAuth && <Route exact path="/new-post" component={NewPost} />}
             <Redirect to="/" />
           </Switch>
         </div>

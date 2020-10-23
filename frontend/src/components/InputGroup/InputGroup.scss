@@ -1,8 +1,12 @@
 @import "../../utils/css/variables";
 @import "../../utils/css/mixins";
 
+.input-group {
+  height: 100%;
+}
+
 .input-group__input-group {
-  width: 250px;
+  height: 100%;
   display: flex;
   align-items: center;
   border: 1px solid $common-grey-color;
@@ -20,10 +24,11 @@
 }
 
 .input-group__input {
+  height: 100%;
   flex: 1;
   padding: 5px;
   background: inherit;
-  color: $light-color;
+  color: inherit;
 
   &::placeholder {
     color: $light-grey-color;

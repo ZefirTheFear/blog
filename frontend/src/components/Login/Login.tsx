@@ -190,7 +190,7 @@ const Login: React.FC<ILoginProps> = ({
   return (
     <div className="login">
       <div className="login__title">Login</div>
-      <form noValidate onSubmit={logIn}>
+      <form noValidate onSubmit={logIn} className="login__form">
         <div className="login__nickname">
           <InputGroup
             type={InputGroupType.plain}

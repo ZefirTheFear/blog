@@ -1,7 +1,9 @@
 import React from "react";
 
+import AddOrEditPost from "../../components/AddOrEditPost/AddOrEditPost";
+
 const NewPost: React.FC = () => {
-  return <div>New Post Page</div>;
+  return <AddOrEditPost />;
 };
 
 export default NewPost;
