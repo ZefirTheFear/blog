@@ -1,7 +1,85 @@
 @import "../../utils/css/variables";
 @import "../../utils/css/mixins";
 
+.content-maker__constructor {
+  @include maker;
+}
+
+.content-maker__constructor_invalid {
+  border-color: $invalid-color !important;
+}
+
 .content-maker__content {
-  border: 1px solid $common-grey-color;
+  // padding: 1rem 0.5rem 0 0.5rem;
   border-radius: $main-border-radius;
+  margin-bottom: 0.5rem;
+}
+.content-maker__content_is-dragging-over {
+  background: $dark-grey-color;
+}
+.content-maker__content_empty {
+  padding: 0;
+  margin: 4px 0 0 0;
+}
+
+.content-maker__content-item {
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.content-maker__content-item-dragger {
+  margin-right: 1rem;
+  font-size: 1.25rem;
+  @include svg-icon;
+  svg {
+    cursor: grab;
+  }
+}
+
+.content-maker__content-item-remove {
+  margin-left: 1rem;
+  @include svg-icon;
+}
+
+// div[data-rbd-placeholder-context-id] {
+//   border: 1px solid red !important;
+// }
+
+.content-maker__options {
+  display: flex;
+  justify-content: center;
+}
+
+.content-maker__options-item {
+  margin: 0 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .content-maker__options-icon {
+    @include main-bg-with-hover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 3rem;
+    height: 3rem;
+    font-size: 2rem;
+    border-radius: 50%;
+    margin-bottom: 0.5rem;
+    color: $light-color;
+
+    svg {
+      display: block;
+    }
+  }
+
+  label {
+    text-transform: uppercase;
+    font-size: 0.75rem;
+  }
+}
+
+.content-maker__img-input {
+  display: none;
 }

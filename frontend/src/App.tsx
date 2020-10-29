@@ -107,6 +107,21 @@ const App: React.FC = () => {
     };
   }, []);
 
+  // ----------- dev-only ----------
+  const toggleDarkTheme = useCallback(
+    (e) => {
+      if (e.code === "NumpadSubtract" && e.shiftKey) {
+        dispatch(darkThemeActions.toggleDarkTheme());
+      }
+    },
+    [dispatch]
+  );
+
+  useEffect(() => {
+    window.addEventListener("keydown", toggleDarkTheme);
+  }, [toggleDarkTheme]);
+  // --------------------------------
+
   if (checkingDarkMode || isFetching) {
     return <Spinner />;
   }

@@ -4,6 +4,7 @@
 .app {
   color: $dark-color;
   background: $light-color;
+  // background: url("./assets/bg/bg_point.png") rgba(0, 0, 0, 0.2);
   min-height: 100vh;
   display: flex;
   flex-direction: column;

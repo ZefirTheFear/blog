@@ -1,0 +1,14 @@
+@import "../../utils/css/variables";
+@import "../../utils/css/mixins";
+
+.content-image {
+  @include content-item;
+
+  .content-image__img {
+    @include content-item-media;
+  }
+}
+
+.content-image_is-dragging {
+  @include content-item-is-dragging;
+}

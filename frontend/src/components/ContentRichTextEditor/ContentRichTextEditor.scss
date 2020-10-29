@@ -1,0 +1,44 @@
+@import "../../utils/css/variables";
+@import "../../utils/css/mixins";
+
+.content-rte {
+  @include content-item;
+}
+
+.content-rte_dark-mode {
+  @include content-item-dark-mode;
+}
+
+.content-rte_is-dragging {
+  @include content-item-is-dragging;
+}
+
+.content-rte_placeholder_hidden {
+  .public-DraftEditorPlaceholder-inner {
+    display: none;
+  }
+}
+
+.content-rte__block-styles,
+.content-rte__inline-styles {
+  padding: 2px;
+}
+
+.content-rte__inline-styles {
+  border-top: 1px solid currentColor;
+  display: inline-block;
+}
+
+.content-rte__editor {
+  border: 1px solid $common-grey-color;
+  border-radius: $main-border-radius;
+  padding: 5px;
+  margin: 0.5rem 0;
+}
+
+.rich-text-editor__html-preview {
+  border: 1px solid $common-grey-color;
+  border-radius: $main-border-radius;
+  padding: 5px;
+  margin: 0.5rem 0;
+}

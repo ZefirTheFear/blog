@@ -83,16 +83,62 @@
   }
 }
 
+@mixin main-bg-with-hover {
+  background: $main-app-color;
+  cursor: pointer;
+  transition: $main-transition;
+
+  &:active {
+    background: darken($main-app-color, 10);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: darken($main-app-color, 10);
+    }
+  }
+}
+
 @mixin modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  color: $light-color;
-  background: $dark-color;
+  color: $dark-color;
+  background: $light-color;
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 1rem;
+}
+
+@mixin maker {
+  padding: 0.5rem;
+  border: 1px solid $common-grey-color;
+  border-radius: $main-border-radius;
+}
+
+@mixin content-item {
+  flex: 1;
+  overflow: hidden;
+  background: $light-grey-color;
+  border: 1px solid transparent;
+  border-radius: $main-border-radius;
+  padding: 5px;
+}
+
+@mixin content-item-dark-mode {
+  background: $dark-grey-color;
+}
+
+@mixin content-item-is-dragging {
+  border-color: $main-app-color !important;
+}
+
+@mixin content-item-media {
+  display: block;
+  max-height: 400px;
+  max-width: 100%;
+  margin: 0 auto;
 }

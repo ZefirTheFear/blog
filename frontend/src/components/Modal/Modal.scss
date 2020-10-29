@@ -6,6 +6,11 @@
   z-index: $modal-z-i;
 }
 
+.modal_dark-mode {
+  color: $light-color;
+  background: $dark-color;
+}
+
 // @supports (backdrop-filter: none) {
 //   .modal {
 //     backdrop-filter: blur(5px);

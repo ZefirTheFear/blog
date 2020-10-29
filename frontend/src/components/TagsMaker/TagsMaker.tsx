@@ -92,7 +92,7 @@ const TagsMaker: React.FC<ITagsMakerProps> = ({ errors }) => {
             </div>
           </div>
           <div className="tags-maker__add">
-            <button onClick={addTag}>
+            <button type="button" onClick={addTag}>
               <FaPlus />
             </button>
           </div>

@@ -2,9 +2,7 @@
 @import "../../utils/css/mixins";
 
 .tags-maker__tags {
-  padding: 0.5rem;
-  border: 1px solid $common-grey-color;
-  border-radius: $main-border-radius;
+  @include maker;
 
   display: flex;
 
@@ -16,6 +14,7 @@
 .tags-maker__input-group {
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 .tags-maker__input-group-inner {

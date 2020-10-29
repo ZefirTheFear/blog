@@ -3,12 +3,12 @@ import cloneDeep from "clone-deep";
 import axios, { AxiosError } from "axios";
 
 import InputGroup, { InputGroupType } from "../InputGroup/InputGroup";
+import ContentMaker from "../ContentMaker/ContentMaker";
 import TagsMaker from "../TagsMaker/TagsMaker";
 
-import { PostBodyUnit } from "../../models/PostBodyUnit";
+import { ContentUnitToSend } from "../../models/ContentUnit";
 
 import "./AddOrEditPost.scss";
-import ContentMaker from "../ContentMaker/ContentMaker";
 
 interface IAddOrEditPostInputErrors {
   postTitle?: string[];
@@ -28,7 +28,7 @@ const AddOrEditPost: React.FC = () => {
   }, []);
 
   const [postTitle, setPostTitle] = useState("");
-  const [postBody, setPostBody] = useState<PostBodyUnit[]>([]);
+  const [postBody, setPostBody] = useState<ContentUnitToSend[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [inputErrors, setInputErrors] = useState<IAddOrEditPostInputErrors>({});
 

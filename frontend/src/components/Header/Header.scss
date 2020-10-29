@@ -7,8 +7,13 @@
   left: 0;
   width: 100%;
   height: $header-height;
+  color: $light-color;
   background: $main-app-color;
   z-index: $header-z-i;
+}
+
+.header_dark-mode {
+  color: $dark-color;
 }
 
 .header__inner {

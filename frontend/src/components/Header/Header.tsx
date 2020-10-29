@@ -73,7 +73,7 @@ const Header: React.FC = () => {
   }, [dispatch]);
 
   return (
-    <header className="header">
+    <header className={"header" + (isDarkTheme ? " header_dark-mode" : "")}>
       <div className="header__inner">
         <span className="header__logo" onClick={goToHomePage}>
           <Logo />

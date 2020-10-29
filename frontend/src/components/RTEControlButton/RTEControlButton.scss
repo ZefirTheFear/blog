@@ -1,0 +1,17 @@
+@import "../../utils/css/variables";
+
+.rte-control-btn {
+  cursor: pointer;
+  margin-right: 1rem;
+  padding: 2px 0;
+  display: inline-block;
+  font-size: 1.25rem;
+
+  &:last-child {
+    margin: 0;
+  }
+}
+
+.rte-control-btn_active {
+  color: $main-app-color;
+}
