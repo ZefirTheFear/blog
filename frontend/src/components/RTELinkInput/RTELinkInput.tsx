@@ -1,21 +1,33 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 
 import "./RTELinkInput.scss";
 
 interface IRTELinkInputProps {
   linkUrl: string;
+  setLinkUrl: (url: string) => void;
+  setLink: () => void;
 }
 
-const RTELinkInput: React.FC<IRTELinkInputProps> = ({ linkUrl }) => {
-  const [url, setUrl] = useState(linkUrl);
+const RTELinkInput: React.FC<IRTELinkInputProps> = ({ linkUrl, setLinkUrl, setLink }) => {
+  const input = useRef<HTMLInputElement>(null!);
 
-  const setLinkUrl = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setUrl(e.target.value);
+  const onChangeLinkUrl = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setLinkUrl(e.target.value);
+    },
+    [setLinkUrl]
+  );
+
+  useEffect(() => {
+    input.current.focus();
   }, []);
 
   return (
     <div className="rte-link-input">
-      <input type="text" value={url} onChange={setLinkUrl} />
+      <input type="text" value={linkUrl} onChange={onChangeLinkUrl} ref={input} />
+      <button type="button" onClick={setLink}>
+        confirm
+      </button>
     </div>
   );
 };

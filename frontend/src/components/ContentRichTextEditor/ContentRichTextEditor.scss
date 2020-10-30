@@ -19,6 +19,15 @@
   }
 }
 
+// .public-DraftEditorPlaceholder-inner {
+//   color: $main-app-color;
+// }
+// .public-DraftEditorPlaceholder-hasFocus {
+//   .public-DraftEditorPlaceholder-inner {
+//     color: darken($main-app-color, 10);
+//   }
+// }
+
 .content-rte__block-styles,
 .content-rte__inline-styles {
   padding: 2px;
@@ -26,7 +35,7 @@
 
 .content-rte__inline-styles {
   border-top: 1px solid currentColor;
-  display: inline-block;
+  // display: inline-block;
 }
 
 .content-rte__editor {
@@ -36,9 +45,41 @@
   margin: 0.5rem 0;
 }
 
+.content-rte__h4 {
+  @include h4;
+}
+
+.content-rte__blockquote {
+  @include blockquote;
+}
+
+.public-DraftStyleDefault-pre {
+  @include code-block;
+}
+.content-rte__code-block {
+  // font-size: 1rem;
+}
+
+.public-DraftStyleDefault-ul,
+.public-DraftStyleDefault-ol {
+  @include list;
+}
+.content-rte__unordered-li,
+.content-rte__ordered-li {
+  @include list-item;
+}
+
+.content-rte__section {
+  @include section;
+}
+
 .rich-text-editor__html-preview {
   border: 1px solid $common-grey-color;
   border-radius: $main-border-radius;
   padding: 5px;
   margin: 0.5rem 0;
+}
+
+.dev-btn {
+  margin: 0 0.5rem;
 }

@@ -142,3 +142,37 @@
   max-width: 100%;
   margin: 0 auto;
 }
+
+@mixin h4 {
+  font-size: 2rem;
+  margin: 1rem 0;
+}
+
+@mixin blockquote {
+  border-left: 5px solid $common-grey-color;
+  color: $common-grey-color;
+  font-style: italic;
+  padding: 0 20px;
+}
+
+@mixin code-block {
+  font-family: monospace;
+  background: $common-grey-color;
+  border-radius: $main-border-radius;
+  padding: 5px 20px;
+}
+
+@mixin list {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: green;
+  border-radius: $main-border-radius;
+}
+
+@mixin list-item {
+  background: darkcyan;
+}
+
+@mixin section {
+  margin: 1rem 0;
+}

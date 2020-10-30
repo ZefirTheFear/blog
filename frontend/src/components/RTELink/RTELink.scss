@@ -1,3 +1,6 @@
+@import "../../utils/css/variables";
+
 .rte-link {
-  color: "#f00";
+  text-decoration: none;
+  color: $main-app-color;
 }

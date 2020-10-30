@@ -1,11 +1,13 @@
 import { EditorState, RichUtils } from "draft-js";
-import { CustomInlineType } from "../../components/RTEInlineStyleControls/RTEInlineStyleControls";
 
-export default function removeEntity(editorState: EditorState, newUrl: string) {
+import { CustomInlineType } from "../../../components/RTEInlineStyleControls/RTEInlineStyleControls";
+
+export default function changeLinkUrl(editorState: EditorState, newUrl: string) {
   const contentState = editorState.getCurrentContent();
   const selectionState = editorState.getSelection();
   const startKey = selectionState.getStartKey();
   const startOffset = selectionState.getStartOffset();
+  const endOffset = selectionState.getEndOffset();
   const currentContentBlock = contentState.getBlockForKey(startKey);
   const entityKey = currentContentBlock.getEntityAt(startOffset);
 
@@ -33,7 +35,10 @@ export default function removeEntity(editorState: EditorState, newUrl: string) {
   // newEditorState = EditorState.push(editorState, newContentState, "apply-entity");
   // newEditorState = EditorState.set(editorState, { currentContent: contentStateWithEntity });
   // newEditorState = RichUtils.toggleLink(newEditorState, entitySelection, newEntityKey);
-  const newEditorState = RichUtils.toggleLink(editorState, entitySelection, newEntityKey);
+  let newEditorState = RichUtils.toggleLink(editorState, entitySelection, newEntityKey);
+
+  const newSelection = selectionState.merge({ anchorOffset: endOffset, focusOffset: endOffset });
+  newEditorState = EditorState.forceSelection(newEditorState, newSelection);
 
   return newEditorState;
 }

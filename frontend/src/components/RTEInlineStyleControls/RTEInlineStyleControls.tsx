@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
-import { EditorState, DraftInlineStyleType } from "draft-js";
+import { EditorState } from "draft-js";
+// import { DraftInlineStyleType } from "draft-js";
 
 import {
   ImBold,
@@ -7,11 +8,9 @@ import {
   ImItalic,
   ImStrikethrough,
   ImSuperscript,
-  ImSubscript,
-  ImLink
+  ImSubscript
 } from "react-icons/im";
-import { BiCodeAlt, BiHighlight, BiLinkAlt, BiUnlink } from "react-icons/bi";
-import { FiExternalLink } from "react-icons/fi";
+import { BiCodeAlt, BiHighlight, BiLink, BiUnlink } from "react-icons/bi";
 
 import RTEControlButton from "../RTEControlButton/RTEControlButton";
 
@@ -20,10 +19,18 @@ import "./RTEInlineStyleControls.scss";
 interface IRTEInlineStyleControlsProps {
   editorState: EditorState;
   onToggle: (s: string) => void;
-  setLink: () => void;
+  toggleLinkInput: () => void;
   unLink: () => void;
   removeLink: () => void;
-  changeLinkUrl: () => void;
+  changeLinkUrl: (url: string) => void;
+}
+
+export enum CoreInlineType {
+  bold = "BOLD",
+  code = "CODE",
+  italic = "ITALIC",
+  strikethrough = "STRIKETHROUGH",
+  underline = "UNDERLINE"
 }
 
 export enum CustomInlineType {
@@ -38,32 +45,28 @@ export enum CustomInlineType {
 
 interface IInlineType {
   label: string;
-  style: DraftInlineStyleType | CustomInlineType;
+  style: CoreInlineType | CustomInlineType;
   icon: JSX.Element;
 }
 
 const RTEInlineStyleControls: React.FC<IRTEInlineStyleControlsProps> = ({
   editorState,
   onToggle,
-  setLink,
-  unLink,
-  removeLink,
-  changeLinkUrl
+  toggleLinkInput,
+  unLink
 }) => {
   const INLINE_STYLES = useMemo<IInlineType[]>(
     () => [
-      { label: "Bold", style: "BOLD", icon: <ImBold /> },
-      { label: "Italic", style: "ITALIC", icon: <ImItalic /> },
-      { label: "Underline", style: "UNDERLINE", icon: <ImUnderline /> },
-      { label: "Strikethrough", style: "STRIKETHROUGH", icon: <ImStrikethrough /> },
-      { label: "Monospace", style: "CODE", icon: <BiCodeAlt /> },
+      { label: "Bold", style: CoreInlineType.bold, icon: <ImBold /> },
+      { label: "Italic", style: CoreInlineType.italic, icon: <ImItalic /> },
+      { label: "Underline", style: CoreInlineType.underline, icon: <ImUnderline /> },
+      { label: "Strikethrough", style: CoreInlineType.strikethrough, icon: <ImStrikethrough /> },
+      { label: "Inline Code", style: CoreInlineType.code, icon: <BiCodeAlt /> },
       { label: "Superscript", style: CustomInlineType.superscript, icon: <ImSuperscript /> },
       { label: "Subscript", style: CustomInlineType.subscript, icon: <ImSubscript /> },
       { label: "HighLight", style: CustomInlineType.highlight, icon: <BiHighlight /> },
-      { label: "Link", style: CustomInlineType.link, icon: <ImLink /> },
-      { label: "Unlink", style: CustomInlineType.unlink, icon: <BiLinkAlt /> },
-      { label: "Remove Link", style: CustomInlineType.removeLink, icon: <BiUnlink /> },
-      { label: "Change Link Url", style: CustomInlineType.changeLink, icon: <FiExternalLink /> }
+      { label: "Link", style: CustomInlineType.link, icon: <BiLink /> },
+      { label: "Unlink", style: CustomInlineType.unlink, icon: <BiUnlink /> }
     ],
     []
   );
@@ -93,10 +96,8 @@ const RTEInlineStyleControls: React.FC<IRTEInlineStyleControlsProps> = ({
           style={type.style}
           icon={type.icon}
           onToggle={onToggle}
-          setLink={setLink}
+          toggleLinkInput={toggleLinkInput}
           unLink={unLink}
-          removeLink={removeLink}
-          changeLinkUrl={changeLinkUrl}
         />
       ))}
     </div>

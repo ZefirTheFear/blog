@@ -5,6 +5,7 @@ export default function removeEntity(editorState: EditorState) {
   const selectionState = editorState.getSelection();
   const startKey = selectionState.getStartKey();
   const startOffset = selectionState.getStartOffset();
+  const endOffset = selectionState.getEndOffset();
   const currentContentBlock = contentState.getBlockForKey(startKey);
   const entityKey = currentContentBlock.getEntityAt(startOffset);
 
@@ -26,7 +27,10 @@ export default function removeEntity(editorState: EditorState) {
 
   const newContentState = Modifier.applyEntity(contentState, entitySelection, null);
 
-  const newEditorState = EditorState.push(editorState, newContentState, "apply-entity");
+  let newEditorState = EditorState.push(editorState, newContentState, "apply-entity");
+
+  const newSelection = selectionState.merge({ anchorOffset: endOffset, focusOffset: endOffset });
+  newEditorState = EditorState.forceSelection(newEditorState, newSelection);
 
   return newEditorState;
 }

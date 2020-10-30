@@ -1,35 +1,44 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import {
   Editor,
   EditorState,
+  SelectionState,
   RichUtils,
   CompositeDecorator,
   ContentBlock,
-  ContentState,
-  CharacterMetadata,
   DraftBlockType,
   DraftEditorCommand,
   DefaultDraftBlockRenderMap,
   DraftBlockRenderConfig,
   DraftHandleValue,
   DraftStyleMap,
-  convertToRaw
+  convertToRaw,
+  convertFromRaw
 } from "draft-js";
 import * as Immutable from "immutable";
 import "draft-js/dist/Draft.css";
-import { stateToHTML } from "draft-js-export-html";
+import { stateToHTML, Options } from "draft-js-export-html";
+import parse from "html-react-parser";
 
 import RTELink from "../RTELink/RTELink";
-import RTEBlockStyleControls from "../RTEBlockStyleControls/RTEBlockStyleControls";
+import RTELinkInput from "../RTELinkInput/RTELinkInput";
+import RTELinkOptions from "../RTELinkOptions/RTELinkOptions";
+import RTEBlockStyleControls, {
+  CoreBlockType,
+  CustomBlockType
+} from "../RTEBlockStyleControls/RTEBlockStyleControls";
 import RTEInlineStyleControls, {
+  CoreInlineType,
   CustomInlineType
 } from "../RTEInlineStyleControls/RTEInlineStyleControls";
 
 import { RootState } from "../../redux/store";
 
-import removeEntity from "../../utils/ts/removeEntity";
-import changeUrl from "../../utils/ts/changeLinkUrl";
+import removeEntity from "../../utils/ts/rte/removeEntity";
+import changeUrl from "../../utils/ts/rte/changeLinkUrl";
+import findLinkEntities from "../../utils/ts/rte/findLinkEntities";
+import addWrapperToCodeBlock from "../../utils/ts/rte/addWrapperToCodeBlock";
 
 import globalStyles from "../../utils/css/variables.scss";
 import "./ContentRichTextEditor.scss";
@@ -39,24 +48,9 @@ interface IContentRichTextEditorProps {
 }
 
 const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDragging }) => {
-  const isDarkTheme = useSelector((state: RootState) => state.darkTheme.isDarkTheme);
+  const editor = useRef<Editor>(null!);
 
-  const findLinkEntities = useCallback(
-    (
-      contentBlock: ContentBlock,
-      callback: (start: number, end: number) => void,
-      contentState: ContentState
-    ): void => {
-      contentBlock.findEntityRanges((character: CharacterMetadata) => {
-        const entityKey = character.getEntity();
-        return (
-          entityKey !== null &&
-          contentState.getEntity(entityKey).getType() === CustomInlineType.link
-        );
-      }, callback);
-    },
-    []
-  );
+  const isDarkTheme = useSelector((state: RootState) => state.darkTheme.isDarkTheme);
 
   const decorator = new CompositeDecorator([
     {
@@ -66,6 +60,11 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
   ]);
 
   const [editorState, setEditorState] = useState(() => EditorState.createEmpty(decorator));
+  const [isShowLinkInput, setIsShowLinkInput] = useState(false);
+  const [linkUrl, setLinkUrl] = useState("");
+  const [linkSelection, setLinkSelection] = useState<SelectionState>(null!);
+  const [isSelectionOnLink, setIsSelectionOnLink] = useState(false);
+  const [selectedLinkUrl, setSelectedLinkUrl] = useState("");
 
   const toggleBlockType = useCallback(
     (blockType: DraftBlockType): void => {
@@ -98,13 +97,10 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
   const blockRenderMap = useMemo(
     () =>
       Immutable.Map<DraftBlockType, DraftBlockRenderConfig>({
-        "header-four": {
-          element: "h4"
-        },
-        unstyled: {
+        [CoreBlockType.unstyled]: {
           element: "div"
         },
-        section: {
+        [CustomBlockType.section]: {
           element: "section"
         }
       }),
@@ -117,12 +113,18 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
 
   const blockStyleFn = useCallback((block: ContentBlock): string => {
     switch (block.getType()) {
-      case "header-four":
-        return "rte-h4";
-      case "blockquote":
-        return "rte-blockquote";
-      case "code-block":
-        return "rte-code-block";
+      case CoreBlockType.headerFour:
+        return "content-rte__h4";
+      case CoreBlockType.blockquote:
+        return "content-rte__blockquote";
+      case CoreBlockType.codeBlock:
+        return "content-rte__code-block";
+      case CoreBlockType.unorderedLI:
+        return "content-rte__unordered-li";
+      case CoreBlockType.orderedLI:
+        return "content-rte__ordered-li";
+      case CustomBlockType.section:
+        return "content-rte__section";
       default:
         return "";
     }
@@ -130,53 +132,57 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
 
   const customStyleMap = useMemo<DraftStyleMap>(() => {
     return {
-      CODE: {
+      [CoreInlineType.code]: {
         display: "inline-block",
         padding: "5px",
-        backgroundColor: globalStyles.commonGreyColor,
         fontFamily: "monospace",
+        backgroundColor: globalStyles.commonGreyColor,
         borderRadius: globalStyles.mainBorderRadius
       },
-      SUPERSCRIPT: {
+      [CustomInlineType.superscript]: {
         fontSize: "0.7rem",
         verticalAlign: "top",
         display: "inline-flex"
       },
-      SUBSCRIPT: {
+      [CustomInlineType.subscript]: {
         fontSize: "0.7rem",
         verticalAlign: "bottom",
         display: "inline-flex"
       },
-      HIGHLIGHT: {
+      [CustomInlineType.highlight]: {
         backgroundColor: globalStyles.mainAppColor
       }
     };
   }, []);
 
-  const setLink = useCallback((): void => {
-    // получаем ссылку из prompt диалога
-    const urlValue = prompt("Введите ссылку", "");
-    if (!urlValue) {
+  const toggleLinkInput = useCallback(() => {
+    const selection = editorState.getSelection();
+    if (selection.isCollapsed()) {
       return;
     }
+    setLinkSelection(selection);
+    setIsShowLinkInput((prevState) => !prevState);
+  }, [editorState]);
 
-    // получаем текущий contentState
+  const setLink = useCallback((): void => {
     const contentState = editorState.getCurrentContent();
 
-    // создаем Entity
     const contentStateWithEntity = contentState.createEntity(CustomInlineType.link, "MUTABLE", {
-      url: urlValue
+      url: linkUrl
     });
 
     const entityKey = contentStateWithEntity.getLastCreatedEntityKey();
 
-    // обновляем свойство currentContent у editorState
-    const newEditorState = EditorState.set(editorState, { currentContent: contentStateWithEntity });
+    let newEditorState = RichUtils.toggleLink(editorState, linkSelection, entityKey);
 
-    // с помощью метода toggleLink из RichUtils генерируем новый
-    // editorState и обновляем стейт
-    setEditorState(RichUtils.toggleLink(newEditorState, newEditorState.getSelection(), entityKey));
-  }, [editorState]);
+    const endOffset = linkSelection.getEndOffset();
+    const newSelection = linkSelection.merge({ anchorOffset: endOffset, focusOffset: endOffset });
+    newEditorState = EditorState.forceSelection(newEditorState, newSelection);
+
+    setEditorState(newEditorState);
+    setLinkUrl("");
+    setIsShowLinkInput(false);
+  }, [editorState, linkSelection, linkUrl]);
 
   const unLink = useCallback((): void => {
     const selection = editorState.getSelection();
@@ -188,44 +194,113 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
   const removeLink = useCallback((): void => {
     const newState = removeEntity(editorState);
     setEditorState(newState);
+    setTimeout(() => {
+      editor.current.focus();
+    }, 0);
   }, [editorState]);
 
-  const changeLinkUrl = useCallback(() => {
-    const newUrlValue = prompt("Введите ссылку", "");
-    if (!newUrlValue) {
+  const changeLinkUrl = useCallback(
+    (newUrl: string) => {
+      const newState = changeUrl(editorState, newUrl);
+      setEditorState(newState);
+      setTimeout(() => {
+        editor.current.focus();
+      }, 0);
+    },
+    [editorState]
+  );
+
+  const checkEditorState = useCallback(() => {
+    const contentState = editorState.getCurrentContent();
+    const startKey = editorState.getSelection().getStartKey();
+    const startOffset = editorState.getSelection().getStartOffset();
+    const endOffset = editorState.getSelection().getEndOffset();
+    const currentBlock = contentState.getBlockForKey(startKey);
+    const startSelectionEntityKey = currentBlock.getEntityAt(startOffset);
+    const endSelectionEntityKey = currentBlock.getEntityAt(endOffset);
+    if (!startSelectionEntityKey || !endSelectionEntityKey) {
+      setIsSelectionOnLink(false);
       return;
     }
-    const newState = changeUrl(editorState, newUrlValue);
-    setEditorState(newState);
-
-    // const contentState = editorState.getCurrentContent();
-    // const startKey = editorState.getSelection().getStartKey();
-    // const startOffset = editorState.getSelection().getStartOffset();
-    // const currentBlock = contentState.getBlockForKey(startKey);
-    // const entityKey = currentBlock.getEntityAt(startOffset);
-    // if (
-    //   entityKey !== null &&
-    //   contentState.getEntity(entityKey).getType() === CustomInlineType.link
-    // ) {
-    //   // contentState.replaceEntityData(entityKey, { url: newUrlValue });
-    //   // contentState.mergeEntityData(entityKey, { url: newUrlValue, q: "q" });
-    //   const newContentState = contentState.replaceEntityData(entityKey, {
-    //     url: newUrlValue,
-    //     q: "q"
-    //   });
-    //   const newEditorState = EditorState.set(editorState, { currentContent: newContentState });
-    //   setEditorState(newEditorState);
-    //   // const newEditorState = EditorState.push(editorState, newContentState, "apply-entity");
-    //   // setEditorState(RichUtils.toggleInlineStyle(editorState, "h"));
-    //   // setEditorState(RichUtils.toggleInlineStyle(editorState, "h"));
-    // }
+    const currentEntity = contentState.getEntity(startSelectionEntityKey);
+    const isOnLink =
+      startSelectionEntityKey === endSelectionEntityKey &&
+      currentEntity.getType() === CustomInlineType.link;
+    const { url } = currentEntity.getData();
+    setIsSelectionOnLink(isOnLink);
+    setSelectedLinkUrl(url);
   }, [editorState]);
 
+  const convertOptions = useMemo<Options>(() => {
+    return {
+      defaultBlockTag: "div",
+      // blockRenderers: {
+      //   unstyled: (block) => {
+      //     return `<div class="rte-unstyled">${escape(block.getText())}</div>`;
+      //   }
+      // },
+      blockStyleFn: (block) => {
+        switch (block.getType()) {
+          case CoreBlockType.headerFour:
+            return {
+              element: "H5",
+              attributes: { class: "rte-h1" }
+            };
+          // case CoreBlockType.blockquote:
+          //   return "content-rte__blockquote";
+          // case CoreBlockType.codeBlock:
+          //   return "content-rte__code-block";
+          // case CoreBlockType.unorderedLI:
+          //   return "content-rte__unordered-li";
+          // case CoreBlockType.orderedLI:
+          //   return "content-rte__ordered-li";
+          case CustomBlockType.section:
+            return {
+              element: "section"
+            };
+          default:
+            return {};
+        }
+      }
+    };
+  }, []);
+
   // -------- dev only --------
+  const getContentAsRawJson = useCallback(() => {
+    const contentState = editorState.getCurrentContent();
+    const raw = convertToRaw(contentState);
+    return JSON.stringify(raw, null, 2);
+  }, [editorState]);
+
   const logState = useCallback((): void => {
     console.log(convertToRaw(editorState.getCurrentContent()));
   }, [editorState]);
+
+  const saveContent = useCallback(() => {
+    const json = getContentAsRawJson();
+    localStorage.setItem("DraftEditorContentJson", json);
+  }, [getContentAsRawJson]);
+
+  const loadContent = useCallback(() => {
+    const savedData = localStorage.getItem("DraftEditorContentJson");
+    return savedData ? JSON.parse(savedData) : null;
+  }, []);
+
+  const setEditorContent = useCallback(() => {
+    const rawEditorData = loadContent();
+    if (rawEditorData !== null) {
+      const contentState = convertFromRaw(rawEditorData);
+      const newEditorState = EditorState.createWithContent(contentState, decorator);
+      setEditorState(newEditorState);
+    } else {
+      setEditorState(EditorState.createEmpty(decorator));
+    }
+  }, [decorator, loadContent]);
   // --------------------------
+
+  useEffect(() => {
+    checkEditorState();
+  }, [checkEditorState]);
 
   const rteClassName = useMemo(() => {
     let className = "content-rte" + (isDragging ? " content-rte_is-dragging" : "");
@@ -250,12 +325,15 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
         <RTEInlineStyleControls
           editorState={editorState}
           onToggle={toggleInlineStyle}
-          setLink={setLink}
           unLink={unLink}
           removeLink={removeLink}
           changeLinkUrl={changeLinkUrl}
+          toggleLinkInput={toggleLinkInput}
         />
       </div>
+      {isShowLinkInput && (
+        <RTELinkInput linkUrl={linkUrl} setLinkUrl={setLinkUrl} setLink={setLink} />
+      )}
       <div className="content-rte__editor">
         <Editor
           placeholder="Enter text"
@@ -267,12 +345,33 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
           blockRenderMap={extendedBlockRenderMap}
           blockStyleFn={blockStyleFn}
           customStyleMap={customStyleMap}
+          ref={editor}
         />
       </div>
-      <button onClick={logState}>Log State</button>
+      {isSelectionOnLink && (
+        <RTELinkOptions
+          linkUrl={selectedLinkUrl}
+          changeLinkUrl={changeLinkUrl}
+          removeLink={removeLink}
+        />
+      )}
       {/* dev only */}
+      <button className="dev-btn" onClick={logState}>
+        Log State
+      </button>
+      <button className="dev-btn" onClick={saveContent}>
+        Save content
+      </button>
+      <button className="dev-btn" onClick={setEditorContent}>
+        Load content
+      </button>
       <div className="rich-text-editor__html-preview">
-        <pre>{stateToHTML(editorState.getCurrentContent())}</pre>
+        <pre>
+          {addWrapperToCodeBlock(stateToHTML(editorState.getCurrentContent(), convertOptions), 0)}
+        </pre>
+      </div>
+      <div className="rich-text-editor__html-preview">
+        {parse(stateToHTML(editorState.getCurrentContent(), convertOptions))}
       </div>
       {/*  */}
     </div>

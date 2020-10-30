@@ -13,26 +13,29 @@ interface IRTEBlockStyleControlsProps {
   onToggle: (s: DraftBlockType) => void;
 }
 
-type CoreDraftBlockType =
-  | "unstyled"
-  | "paragraph"
-  | "header-one"
-  | "header-two"
-  | "header-three"
-  | "header-four"
-  | "header-five"
-  | "header-six"
-  | "unordered-list-item"
-  | "ordered-list-item"
-  | "blockquote"
-  | "code-block"
-  | "atomic";
+export enum CoreBlockType {
+  unstyled = "unstyled",
+  paragraph = "paragraph",
+  headerOne = "header-one",
+  headerTwo = "header-two",
+  headerThree = "header-three",
+  headerFour = "header-four",
+  headerFive = "header-five",
+  headerSix = "header-six",
+  unorderedLI = "unordered-list-item",
+  orderedLI = "ordered-list-item",
+  blockquote = "blockquote",
+  codeBlock = "code-block",
+  atomic = "atomic"
+}
 
-type CustomBlockType = "section";
+export enum CustomBlockType {
+  section = "section"
+}
 
 interface IBlockType {
   label: string;
-  style: CoreDraftBlockType | CustomBlockType;
+  style: CoreBlockType | CustomBlockType;
   icon: JSX.Element;
 }
 
@@ -42,12 +45,12 @@ const RTEBlockStyleControls: React.FC<IRTEBlockStyleControlsProps> = ({
 }) => {
   const BLOCK_TYPES = useMemo<IBlockType[]>(
     () => [
-      { label: "Heading", style: "header-four", icon: <FaHeading /> },
-      { label: "Blockquote", style: "blockquote", icon: <FaQuoteLeft /> },
-      { label: "Unordered list", style: "unordered-list-item", icon: <FaListUl /> },
-      { label: "Ordered list", style: "ordered-list-item", icon: <FaListOl /> },
-      { label: "Code Block", style: "code-block", icon: <BiCodeBlock /> },
-      { label: "Section", style: "section", icon: <FaParagraph /> }
+      { label: "Heading", style: CoreBlockType.headerFour, icon: <FaHeading /> },
+      { label: "Blockquote", style: CoreBlockType.blockquote, icon: <FaQuoteLeft /> },
+      { label: "Unordered list", style: CoreBlockType.unorderedLI, icon: <FaListUl /> },
+      { label: "Ordered list", style: CoreBlockType.orderedLI, icon: <FaListOl /> },
+      { label: "Code Block", style: CoreBlockType.codeBlock, icon: <BiCodeBlock /> },
+      { label: "Section", style: CustomBlockType.section, icon: <FaParagraph /> }
     ],
     []
   );

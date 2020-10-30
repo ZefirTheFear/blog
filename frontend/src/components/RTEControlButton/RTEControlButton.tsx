@@ -10,10 +10,8 @@ interface IRTEControlButtonProps {
   style: string;
   icon: JSX.Element;
   onToggle: (s: string) => void;
-  setLink?: () => void;
+  toggleLinkInput?: () => void;
   unLink?: () => void;
-  removeLink?: () => void;
-  changeLinkUrl?: () => void;
 }
 
 const RTEControlButton: React.FC<IRTEControlButtonProps> = ({
@@ -22,17 +20,15 @@ const RTEControlButton: React.FC<IRTEControlButtonProps> = ({
   style,
   icon,
   onToggle,
-  setLink,
-  unLink,
-  removeLink,
-  changeLinkUrl
+  toggleLinkInput,
+  unLink
 }) => {
   const onToggleStyle = useCallback(
     (e: React.MouseEvent<HTMLSpanElement>): void => {
       e.preventDefault();
       if (style === CustomInlineType.link) {
-        if (setLink) {
-          setLink();
+        if (toggleLinkInput) {
+          toggleLinkInput();
           return;
         }
       }
@@ -42,21 +38,9 @@ const RTEControlButton: React.FC<IRTEControlButtonProps> = ({
           return;
         }
       }
-      if (style === CustomInlineType.removeLink) {
-        if (removeLink) {
-          removeLink();
-          return;
-        }
-      }
-      if (style === CustomInlineType.changeLink) {
-        if (changeLinkUrl) {
-          changeLinkUrl();
-          return;
-        }
-      }
       onToggle(style);
     },
-    [style, onToggle, setLink, unLink, removeLink, changeLinkUrl]
+    [style, onToggle, toggleLinkInput, unLink]
   );
 
   return (

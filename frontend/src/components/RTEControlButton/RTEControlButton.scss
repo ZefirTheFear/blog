@@ -1,14 +1,31 @@
 @import "../../utils/css/variables";
 
 .rte-control-btn {
-  cursor: pointer;
-  margin-right: 1rem;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-right: 0.25rem;
   padding: 2px 0;
-  display: inline-block;
   font-size: 1.25rem;
+  cursor: pointer;
+  border-radius: $main-border-radius;
 
   &:last-child {
     margin: 0;
+  }
+
+  @mixin hover {
+    background: $common-grey-color;
+  }
+  &:active {
+    @include hover;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @include hover;
+    }
   }
 }
 
