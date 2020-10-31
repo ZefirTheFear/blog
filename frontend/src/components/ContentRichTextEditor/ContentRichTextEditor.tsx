@@ -38,7 +38,8 @@ import { RootState } from "../../redux/store";
 import removeEntity from "../../utils/ts/rte/removeEntity";
 import changeUrl from "../../utils/ts/rte/changeLinkUrl";
 import findLinkEntities from "../../utils/ts/rte/findLinkEntities";
-import addWrapperToCodeBlock from "../../utils/ts/rte/addWrapperToCodeBlock";
+import addWrapperToCodeBlocks from "../../utils/ts/rte/addWrapperToCodeBlocks";
+import addClassToLists from "../../utils/ts/rte/addClassToLists";
 
 import globalStyles from "../../utils/css/variables.scss";
 import "./ContentRichTextEditor.scss";
@@ -134,8 +135,9 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
     return {
       [CoreInlineType.code]: {
         display: "inline-block",
-        padding: "5px",
+        padding: "3px",
         fontFamily: "monospace",
+        fontSize: "16px",
         backgroundColor: globalStyles.commonGreyColor,
         borderRadius: globalStyles.mainBorderRadius
       },
@@ -231,41 +233,73 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
     setSelectedLinkUrl(url);
   }, [editorState]);
 
+  // -------- dev only --------
   const convertOptions = useMemo<Options>(() => {
     return {
-      defaultBlockTag: "div",
-      // blockRenderers: {
-      //   unstyled: (block) => {
-      //     return `<div class="rte-unstyled">${escape(block.getText())}</div>`;
-      //   }
-      // },
+      defaultBlockTag: "p",
       blockStyleFn: (block) => {
         switch (block.getType()) {
           case CoreBlockType.headerFour:
             return {
-              element: "H5",
-              attributes: { class: "rte-h1" }
+              attributes: { class: "content-h4" }
             };
-          // case CoreBlockType.blockquote:
-          //   return "content-rte__blockquote";
-          // case CoreBlockType.codeBlock:
-          //   return "content-rte__code-block";
-          // case CoreBlockType.unorderedLI:
-          //   return "content-rte__unordered-li";
-          // case CoreBlockType.orderedLI:
-          //   return "content-rte__ordered-li";
-          case CustomBlockType.section:
+          case CoreBlockType.blockquote:
             return {
-              element: "section"
+              attributes: { class: "content-blockquote" }
+            };
+          case CoreBlockType.unorderedLI:
+            return {
+              attributes: { class: "content-uli" }
+            };
+          case CoreBlockType.orderedLI:
+            return {
+              attributes: { class: "content-oli" }
             };
           default:
             return {};
+        }
+      },
+
+      blockRenderers: {
+        [CustomBlockType.section]: (block) => {
+          return `<section class="content-section">${escape(block.getText())}</section>`;
+        }
+      },
+
+      inlineStyles: {
+        [CoreInlineType.bold]: { element: "span", attributes: { class: "content-bold" } },
+        [CoreInlineType.italic]: { element: "span", attributes: { class: "content-italic" } },
+        [CoreInlineType.underline]: { element: "span", attributes: { class: "content-underline" } },
+        [CoreInlineType.strikethrough]: {
+          element: "span",
+          attributes: { class: "content-strikethrough" }
+        },
+        [CoreInlineType.code]: { attributes: { class: "content-inline-code" } },
+        [CustomInlineType.superscript]: {
+          element: "sup",
+          attributes: { class: "content-sup" }
+        },
+        [CustomInlineType.subscript]: {
+          element: "sub",
+          attributes: { class: "content-sub" }
+        },
+        [CustomInlineType.highlight]: { attributes: { class: "content-highlight" } }
+      },
+      entityStyleFn: (entity) => {
+        if (entity.getType() === CustomInlineType.link) {
+          return {
+            element: "a",
+            attributes: {
+              class: "content-link",
+              href: entity.getData().url,
+              target: "_blank"
+            }
+          };
         }
       }
     };
   }, []);
 
-  // -------- dev only --------
   const getContentAsRawJson = useCallback(() => {
     const contentState = editorState.getCurrentContent();
     const raw = convertToRaw(contentState);
@@ -296,6 +330,19 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
       setEditorState(EditorState.createEmpty(decorator));
     }
   }, [decorator, loadContent]);
+
+  // const html = useMemo(() => {
+  //   const rawEditorData = loadContent();
+  //   let contentState;
+  //   if (rawEditorData !== null) {
+  //     contentState = convertFromRaw(rawEditorData);
+  //   }
+  //   if (contentState) {
+  //     return stateToHTML(contentState, convertOptions);
+  //   } else {
+  //     return "";
+  //   }
+  // }, [convertOptions, loadContent]);
   // --------------------------
 
   useEffect(() => {
@@ -367,11 +414,17 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
       </button>
       <div className="rich-text-editor__html-preview">
         <pre>
-          {addWrapperToCodeBlock(stateToHTML(editorState.getCurrentContent(), convertOptions), 0)}
+          {addClassToLists(
+            addWrapperToCodeBlocks(stateToHTML(editorState.getCurrentContent(), convertOptions))
+          )}
         </pre>
       </div>
       <div className="rich-text-editor__html-preview">
-        {parse(stateToHTML(editorState.getCurrentContent(), convertOptions))}
+        {parse(
+          addClassToLists(
+            addWrapperToCodeBlocks(stateToHTML(editorState.getCurrentContent(), convertOptions))
+          )
+        )}
       </div>
       {/*  */}
     </div>

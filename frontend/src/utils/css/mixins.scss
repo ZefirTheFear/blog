@@ -164,15 +164,18 @@
 
 @mixin list {
   margin: 1rem 0;
-  padding: 1rem;
-  background: green;
-  border-radius: $main-border-radius;
+  padding: 0 2rem;
 }
 
 @mixin list-item {
-  background: darkcyan;
+  padding: 0 5px;
 }
 
 @mixin section {
   margin: 1rem 0;
+}
+
+@mixin link {
+  text-decoration: none;
+  color: $main-app-color;
 }

@@ -1,6 +1,6 @@
 @import "../../utils/css/variables";
+@import "../../utils/css/mixins";
 
 .rte-link {
-  text-decoration: none;
-  color: $main-app-color;
+  @include link;
 }
