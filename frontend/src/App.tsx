@@ -109,7 +109,7 @@ const App: React.FC = () => {
 
   // ----------- dev-only ----------
   const toggleDarkTheme = useCallback(
-    (e) => {
+    (e: KeyboardEvent) => {
       if (e.code === "NumpadSubtract" && e.shiftKey) {
         dispatch(darkThemeActions.toggleDarkTheme());
       }

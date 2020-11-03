@@ -201,6 +201,7 @@ const Login: React.FC<ILoginProps> = ({
             value={nickname}
             onChange={changeInputValue}
             onFocus={focusInput}
+            isInitialFocused
           />
         </div>
         <div className="login__password">

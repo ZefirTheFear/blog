@@ -141,13 +141,22 @@
   cursor: pointer;
 }
 
+// --------------DEV ONLY
 .rich-text-editor__html-preview {
   border: 1px solid $common-grey-color;
   border-radius: $main-border-radius;
   padding: 5px;
   margin: 0.5rem 0;
+  // white-space: pre-wrap;
+  overflow-wrap: break-word;
+
+  pre {
+    white-space: pre-wrap;
+    // overflow-wrap: break-word;
+  }
 }
 
 .dev-btn {
   margin: 0 0.5rem;
 }
+// --------------DEV ONLY

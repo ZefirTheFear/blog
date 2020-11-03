@@ -222,6 +222,7 @@ const Register: React.FC<IRegisterProps> = ({ setAuthModeToLogin }) => {
             value={nickname}
             onChange={changeInputValue}
             onFocus={focusInput}
+            isInitialFocused
           />
         </div>
         <div className="register__email">

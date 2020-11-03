@@ -1,6 +1,4 @@
-import { EditorState, RichUtils } from "draft-js";
-
-import { CustomInlineType } from "../../../components/RTEInlineStyleControls/RTEInlineStyleControls";
+import { EditorState } from "draft-js";
 
 export default function changeLinkUrl(editorState: EditorState, newUrl: string) {
   const contentState = editorState.getCurrentContent();
@@ -15,27 +13,8 @@ export default function changeLinkUrl(editorState: EditorState, newUrl: string) 
     return editorState;
   }
 
-  let entitySelection = selectionState;
-
-  currentContentBlock.findEntityRanges(
-    (character) => character.getEntity() === entityKey,
-    (start, end) => {
-      entitySelection = selectionState.merge({
-        anchorOffset: start,
-        focusOffset: end
-      });
-    }
-  );
-
-  const contentStateWithEntity = contentState.createEntity(CustomInlineType.link, "MUTABLE", {
-    url: newUrl
-  });
-  const newEntityKey = contentStateWithEntity.getLastCreatedEntityKey();
-  // let newContentState = Modifier.applyEntity(contentState, entitySelection, null);
-  // newEditorState = EditorState.push(editorState, newContentState, "apply-entity");
-  // newEditorState = EditorState.set(editorState, { currentContent: contentStateWithEntity });
-  // newEditorState = RichUtils.toggleLink(newEditorState, entitySelection, newEntityKey);
-  let newEditorState = RichUtils.toggleLink(editorState, entitySelection, newEntityKey);
+  const newConSt = contentState.replaceEntityData(entityKey, { url: newUrl });
+  let newEditorState = EditorState.set(editorState, { currentContent: newConSt });
 
   const newSelection = selectionState.merge({ anchorOffset: endOffset, focusOffset: endOffset });
   newEditorState = EditorState.forceSelection(newEditorState, newSelection);

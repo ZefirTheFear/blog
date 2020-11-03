@@ -19,10 +19,8 @@ import "./RTEInlineStyleControls.scss";
 interface IRTEInlineStyleControlsProps {
   editorState: EditorState;
   onToggle: (s: string) => void;
-  toggleLinkInput: () => void;
+  openLinkInput: () => void;
   unLink: () => void;
-  removeLink: () => void;
-  changeLinkUrl: (url: string) => void;
 }
 
 export enum CoreInlineType {
@@ -52,7 +50,7 @@ interface IInlineType {
 const RTEInlineStyleControls: React.FC<IRTEInlineStyleControlsProps> = ({
   editorState,
   onToggle,
-  toggleLinkInput,
+  openLinkInput,
   unLink
 }) => {
   const INLINE_STYLES = useMemo<IInlineType[]>(
@@ -96,7 +94,7 @@ const RTEInlineStyleControls: React.FC<IRTEInlineStyleControlsProps> = ({
           style={type.style}
           icon={type.icon}
           onToggle={onToggle}
-          toggleLinkInput={toggleLinkInput}
+          openLinkInput={openLinkInput}
           unLink={unLink}
         />
       ))}

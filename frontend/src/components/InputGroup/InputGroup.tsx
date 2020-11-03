@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useRef, useState, useCallback, useEffect } from "react";
 import { IoMdEye, IoMdEyeOff } from "react-icons/io";
 
 import InvalidFeedback from "../InvalidFeedback/InvalidFeedback";
@@ -19,6 +19,7 @@ interface IInputGroup {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onFocus: (e: React.FocusEvent<HTMLInputElement>) => void;
+  isInitialFocused?: boolean;
 }
 
 const InputGroup: React.FC<IInputGroup> = ({
@@ -29,13 +30,28 @@ const InputGroup: React.FC<IInputGroup> = ({
   name,
   value,
   onChange,
-  onFocus
+  onFocus,
+  isInitialFocused
 }) => {
+  const input = useRef<HTMLInputElement>(null!);
+
   const [isShownPassword, setIsShownPassword] = useState(false);
 
   const toggleIsShownPassword = useCallback(() => {
     setIsShownPassword((prevState) => !prevState);
   }, []);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isInitialFocused) {
+      timer = setTimeout(() => {
+        input.current.focus();
+      }, 0);
+    }
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [isInitialFocused]);
 
   return (
     <div className="input-group">
@@ -51,6 +67,7 @@ const InputGroup: React.FC<IInputGroup> = ({
           onChange={onChange}
           onFocus={onFocus}
           autoComplete="off"
+          ref={input}
         />
         {type === InputGroupType.password && (
           <div

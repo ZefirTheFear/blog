@@ -3,7 +3,6 @@ import { useSelector } from "react-redux";
 import {
   Editor,
   EditorState,
-  SelectionState,
   RichUtils,
   CompositeDecorator,
   ContentBlock,
@@ -14,7 +13,8 @@ import {
   DraftHandleValue,
   DraftStyleMap,
   convertToRaw,
-  convertFromRaw
+  convertFromRaw,
+  Modifier
 } from "draft-js";
 import * as Immutable from "immutable";
 import "draft-js/dist/Draft.css";
@@ -48,6 +48,11 @@ interface IContentRichTextEditorProps {
   isDragging: boolean;
 }
 
+export interface ICoordinates {
+  top: number;
+  left: number;
+}
+
 const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDragging }) => {
   const editor = useRef<Editor>(null!);
 
@@ -62,8 +67,8 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
 
   const [editorState, setEditorState] = useState(() => EditorState.createEmpty(decorator));
   const [isShowLinkInput, setIsShowLinkInput] = useState(false);
-  const [linkUrl, setLinkUrl] = useState("");
-  const [linkSelection, setLinkSelection] = useState<SelectionState>(null!);
+  const [caretCoordinates, setCaretCoordinates] = useState<ICoordinates>({ top: 0, left: 0 });
+
   const [isSelectionOnLink, setIsSelectionOnLink] = useState(false);
   const [selectedLinkUrl, setSelectedLinkUrl] = useState("");
 
@@ -157,34 +162,62 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
     };
   }, []);
 
-  const toggleLinkInput = useCallback(() => {
-    const selection = editorState.getSelection();
-    if (selection.isCollapsed()) {
-      return;
-    }
-    setLinkSelection(selection);
-    setIsShowLinkInput((prevState) => !prevState);
-  }, [editorState]);
+  const setLink = useCallback(
+    (isFromSelection: boolean, url: string, text: string): void => {
+      const currentContentState = editorState.getCurrentContent();
+      const currentSelection = editorState.getSelection();
 
-  const setLink = useCallback((): void => {
-    const contentState = editorState.getCurrentContent();
+      let newEditorState = EditorState.createEmpty();
 
-    const contentStateWithEntity = contentState.createEntity(CustomInlineType.link, "MUTABLE", {
-      url: linkUrl
-    });
+      if (isFromSelection) {
+        const contentStateWithEntity = currentContentState.createEntity(
+          CustomInlineType.link,
+          "MUTABLE",
+          { url: url }
+        );
+        const entityKey = contentStateWithEntity.getLastCreatedEntityKey();
+        newEditorState = RichUtils.toggleLink(editorState, currentSelection, entityKey);
+        const endOffset = currentSelection.getEndOffset();
+        const newSelection = currentSelection.merge({
+          anchorOffset: endOffset,
+          focusOffset: endOffset
+        });
+        newEditorState = EditorState.forceSelection(newEditorState, newSelection);
+      } else if (text) {
+        // const anchorKey = currentSelection.getAnchorKey();
+        // const currentContentBlock = currentContentState.getBlockForKey(anchorKey);
+        // const start = currentSelection.getStartOffset();
+        // const end = currentSelection.getEndOffset();
+        // const selectedText = currentContentBlock.getText().slice(start, end);
+        // console.log(selectedText);
 
-    const entityKey = contentStateWithEntity.getLastCreatedEntityKey();
+        const contentStateWithEntity = currentContentState.createEntity(
+          CustomInlineType.link,
+          "MUTABLE",
+          { url: url }
+        );
+        const newEntityKey = contentStateWithEntity.getLastCreatedEntityKey();
+        const newContentState = Modifier.insertText(
+          currentContentState,
+          currentSelection,
+          text,
+          undefined,
+          newEntityKey
+        );
+        newEditorState = EditorState.set(editorState, { currentContent: newContentState });
 
-    let newEditorState = RichUtils.toggleLink(editorState, linkSelection, entityKey);
+        const newSelection = currentSelection.merge({
+          anchorOffset: currentSelection.getEndOffset() + text.length,
+          focusOffset: currentSelection.getEndOffset() + text.length
+        });
+        newEditorState = EditorState.forceSelection(newEditorState, newSelection);
+      }
 
-    const endOffset = linkSelection.getEndOffset();
-    const newSelection = linkSelection.merge({ anchorOffset: endOffset, focusOffset: endOffset });
-    newEditorState = EditorState.forceSelection(newEditorState, newSelection);
-
-    setEditorState(newEditorState);
-    setLinkUrl("");
-    setIsShowLinkInput(false);
-  }, [editorState, linkSelection, linkUrl]);
+      setEditorState(newEditorState);
+      setIsShowLinkInput(false);
+    },
+    [editorState]
+  );
 
   const unLink = useCallback((): void => {
     const selection = editorState.getSelection();
@@ -232,6 +265,70 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
     setIsSelectionOnLink(isOnLink);
     setSelectedLinkUrl(url);
   }, [editorState]);
+
+  const isSelection = useMemo((): boolean => {
+    const currentSelection = editorState.getSelection();
+    const start = currentSelection.getStartOffset();
+    const end = currentSelection.getEndOffset();
+    return start !== end;
+  }, [editorState]);
+
+  const setInputCoords = useCallback(() => {
+    const selection = window.getSelection();
+    if (selection) {
+      const range = selection.getRangeAt(0);
+
+      const endNode = range.endContainer;
+      if (range.endOffset === 0) {
+        range.setEnd(endNode, 1);
+        const top =
+          window.pageYOffset +
+          range.getBoundingClientRect().top +
+          range.getBoundingClientRect().height;
+        const left = range.getBoundingClientRect().left;
+        setCaretCoordinates({ top, left });
+        range.setEnd(endNode, 0);
+      } else {
+        const top =
+          window.pageYOffset +
+          range.getBoundingClientRect().top +
+          range.getBoundingClientRect().height;
+        const left = range.getBoundingClientRect().left;
+        setCaretCoordinates({ top, left });
+      }
+      // console.log("top", range.getBoundingClientRect().top);
+      // console.log("left", range.getBoundingClientRect().left);
+      // console.log("height", range.getBoundingClientRect().height);
+      // console.log("width", range.getBoundingClientRect().width);
+    }
+  }, []);
+
+  const openLinkInput = useCallback(() => {
+    // const selection = editorState.getSelection();
+    // if (selection.isCollapsed()) {
+    //   return;
+    // }
+    setIsShowLinkInput(true);
+  }, []);
+
+  const closeLinkInput = useCallback(() => {
+    setIsShowLinkInput(false);
+  }, []);
+
+  useEffect(() => {
+    editor.current.focus();
+  }, []);
+
+  useEffect(() => {
+    checkEditorState();
+  }, [checkEditorState]);
+
+  useEffect(() => {
+    const editorHasFocus = editorState.getSelection().getHasFocus();
+    if (editorHasFocus) {
+      setInputCoords();
+    }
+  }, [editorState, setInputCoords]);
 
   // -------- dev only --------
   const convertOptions = useMemo<Options>(() => {
@@ -345,10 +442,6 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
   // }, [convertOptions, loadContent]);
   // --------------------------
 
-  useEffect(() => {
-    checkEditorState();
-  }, [checkEditorState]);
-
   const rteClassName = useMemo(() => {
     let className = "content-rte" + (isDragging ? " content-rte_is-dragging" : "");
     const contentState = editorState.getCurrentContent();
@@ -373,13 +466,18 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
           editorState={editorState}
           onToggle={toggleInlineStyle}
           unLink={unLink}
-          removeLink={removeLink}
-          changeLinkUrl={changeLinkUrl}
-          toggleLinkInput={toggleLinkInput}
+          openLinkInput={openLinkInput}
         />
       </div>
       {isShowLinkInput && (
-        <RTELinkInput linkUrl={linkUrl} setLinkUrl={setLinkUrl} setLink={setLink} />
+        // <Modal closeModal={closeLinkInput}>
+        <RTELinkInput
+          setLink={setLink}
+          isSelection={isSelection}
+          closeLinkInput={closeLinkInput}
+          coordinates={caretCoordinates}
+        />
+        // </Modal>
       )}
       <div className="content-rte__editor">
         <Editor
@@ -387,7 +485,7 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
           // spellCheck={true}
           editorState={editorState}
           onChange={setEditorState}
-          stripPastedStyles={true}
+          // stripPastedStyles={true}
           handleKeyCommand={handleKeyCommand}
           blockRenderMap={extendedBlockRenderMap}
           blockStyleFn={blockStyleFn}

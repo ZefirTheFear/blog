@@ -188,6 +188,7 @@ const ForgotPassword: React.FC<IForgotPasswordProps> = ({ setAuthModeToLogin }) 
             value={nickname}
             onChange={changeInputValue}
             onFocus={focusInput}
+            isInitialFocused
           />
         </div>
         <div className="forgot-password__email">
