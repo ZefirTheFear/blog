@@ -46,8 +46,8 @@ const RTEControlButton: React.FC<IRTEControlButtonProps> = ({
   return (
     <span
       className={"rte-control-btn" + (isActive ? " rte-control-btn_active" : "")}
-      // onMouseDown={onToggleStyle}
-      onClick={onToggleStyle}
+      onMouseDown={onToggleStyle}
+      // onClick={onToggleStyle}
       title={label}
     >
       {icon}

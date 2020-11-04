@@ -55,6 +55,7 @@ export interface ICoordinates {
 
 const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDragging }) => {
   const editor = useRef<Editor>(null!);
+  const editorWrapper = useRef<HTMLDivElement>(null!);
 
   const isDarkTheme = useSelector((state: RootState) => state.darkTheme.isDarkTheme);
 
@@ -71,6 +72,10 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
 
   const [isSelectionOnLink, setIsSelectionOnLink] = useState(false);
   const [selectedLinkUrl, setSelectedLinkUrl] = useState("");
+  const [selectedLinkCoordinates, setSelectedLinkCoordinates] = useState<ICoordinates>({
+    top: 0,
+    left: 0
+  });
 
   const toggleBlockType = useCallback(
     (blockType: DraftBlockType): void => {
@@ -245,7 +250,7 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
     [editorState]
   );
 
-  const checkEditorState = useCallback(() => {
+  const checkIsSelectionOnLink = useCallback(() => {
     const contentState = editorState.getCurrentContent();
     const startKey = editorState.getSelection().getStartKey();
     const startOffset = editorState.getSelection().getStartOffset();
@@ -264,6 +269,19 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
     const { url } = currentEntity.getData();
     setIsSelectionOnLink(isOnLink);
     setSelectedLinkUrl(url);
+
+    const selection = window.getSelection();
+    if (selection) {
+      const node = selection.anchorNode;
+      if (node) {
+        const element = node.parentElement;
+        if (element) {
+          const top = window.pageYOffset + element.getBoundingClientRect().bottom;
+          const left = element.getBoundingClientRect().left;
+          setSelectedLinkCoordinates({ top, left });
+        }
+      }
+    }
   }, [editorState]);
 
   const isSelection = useMemo((): boolean => {
@@ -273,7 +291,7 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
     return start !== end;
   }, [editorState]);
 
-  const setInputCoords = useCallback(() => {
+  const setInputCoords = useCallback((): void => {
     const selection = window.getSelection();
     if (selection) {
       const range = selection.getRangeAt(0);
@@ -281,25 +299,15 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
       const endNode = range.endContainer;
       if (range.endOffset === 0) {
         range.setEnd(endNode, 1);
-        const top =
-          window.pageYOffset +
-          range.getBoundingClientRect().top +
-          range.getBoundingClientRect().height;
+        const top = window.pageYOffset + range.getBoundingClientRect().bottom;
         const left = range.getBoundingClientRect().left;
         setCaretCoordinates({ top, left });
         range.setEnd(endNode, 0);
       } else {
-        const top =
-          window.pageYOffset +
-          range.getBoundingClientRect().top +
-          range.getBoundingClientRect().height;
+        const top = window.pageYOffset + range.getBoundingClientRect().bottom;
         const left = range.getBoundingClientRect().left;
         setCaretCoordinates({ top, left });
       }
-      // console.log("top", range.getBoundingClientRect().top);
-      // console.log("left", range.getBoundingClientRect().left);
-      // console.log("height", range.getBoundingClientRect().height);
-      // console.log("width", range.getBoundingClientRect().width);
     }
   }, []);
 
@@ -315,13 +323,19 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
     setIsShowLinkInput(false);
   }, []);
 
+  const closeLinkOptions = useCallback(() => {
+    setTimeout(() => {
+      setIsSelectionOnLink(false);
+    }, 0);
+  }, []);
+
   useEffect(() => {
     editor.current.focus();
   }, []);
 
   useEffect(() => {
-    checkEditorState();
-  }, [checkEditorState]);
+    checkIsSelectionOnLink();
+  }, [checkIsSelectionOnLink]);
 
   useEffect(() => {
     const editorHasFocus = editorState.getSelection().getHasFocus();
@@ -470,16 +484,14 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
         />
       </div>
       {isShowLinkInput && (
-        // <Modal closeModal={closeLinkInput}>
         <RTELinkInput
           setLink={setLink}
           isSelection={isSelection}
           closeLinkInput={closeLinkInput}
           coordinates={caretCoordinates}
         />
-        // </Modal>
       )}
-      <div className="content-rte__editor">
+      <div className="content-rte__editor" ref={editorWrapper}>
         <Editor
           placeholder="Enter text"
           // spellCheck={true}
@@ -498,6 +510,9 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
           linkUrl={selectedLinkUrl}
           changeLinkUrl={changeLinkUrl}
           removeLink={removeLink}
+          closeLinkOptions={closeLinkOptions}
+          coordinates={selectedLinkCoordinates}
+          editorWrapper={editorWrapper}
         />
       )}
       {/* dev only */}

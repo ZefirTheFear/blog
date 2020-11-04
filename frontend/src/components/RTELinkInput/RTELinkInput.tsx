@@ -1,11 +1,12 @@
-import React, { useRef, useState, useCallback, useEffect } from "react";
-import { createPortal } from "react-dom";
+import React, { useRef, useState, useCallback } from "react";
 import cloneDeep from "clone-deep";
 
 import InputGroup, { InputGroupType } from "../InputGroup/InputGroup";
 import { ICoordinates } from "../ContentRichTextEditor/ContentRichTextEditor";
 
 import "./RTELinkInput.scss";
+import RTELinkModal from "../RTELinkModal/RTELinkModal";
+import validator from "validator";
 
 interface IRTELinkInputProps {
   isSelection: boolean;
@@ -30,14 +31,11 @@ const RTELinkInput: React.FC<IRTELinkInputProps> = ({
   closeLinkInput,
   coordinates
 }) => {
-  const tooltipTriangle = useRef<HTMLDivElement>(null!);
   const inputBlock = useRef<HTMLDivElement>(null!);
 
   const [text, setText] = useState("");
   const [url, setUrl] = useState("");
   const [inputErrors, setInputErrors] = useState<IRTELinkInputErrors>({});
-
-  const [isMounted, setIsMounted] = useState(false);
 
   const changeInputValue = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.name === RTELinkInputFields.text) {
@@ -57,64 +55,51 @@ const RTELinkInput: React.FC<IRTELinkInputProps> = ({
     [inputErrors]
   );
 
-  const setLinkUrl = useCallback(() => {
-    // TODO validation
-    setLink(isSelection, url, text);
-  }, [isSelection, setLink, text, url]);
+  const validate = useCallback(() => {
+    const clientErrors: IRTELinkInputErrors = {};
 
-  const setPosition = useCallback(() => {
-    tooltipTriangle.current.style.top = coordinates.top + "px";
-    tooltipTriangle.current.style.left = coordinates.left + "px";
-    tooltipTriangle.current.style.display = "block";
-
-    const clientWidth = document.documentElement.clientWidth;
-    const inputBlockoffsetWidth = parseInt(getComputedStyle(inputBlock.current).width);
-    if (clientWidth / inputBlockoffsetWidth < 1.5) {
-      inputBlock.current.style.left = (clientWidth - inputBlockoffsetWidth) / 2 + "px";
-    } else if (coordinates.left < clientWidth / 2) {
-      inputBlock.current.style.left = coordinates.left - 32 + "px";
-    } else {
-      inputBlock.current.style.left = coordinates.left - inputBlockoffsetWidth + 32 + "px";
+    if (!isSelection) {
+      if (text.trim().length < 1 || text.trim().length > 40) {
+        const oldMsgs = clientErrors.text ? cloneDeep(clientErrors.text) : [];
+        clientErrors.text = [...oldMsgs, "from 1 to 40 symbols"];
+      }
     }
-    inputBlock.current.style.top = coordinates.top + "px";
-    inputBlock.current.style.display = "block";
-  }, [coordinates]);
+
+    if (!validator.isURL(url, { protocols: ["http", "https"], require_protocol: true })) {
+      const oldMsgs = clientErrors.url ? cloneDeep(clientErrors.url) : [];
+      clientErrors.url = [...oldMsgs, "enter valid url"];
+    }
+
+    if (Object.keys(clientErrors).length > 0) {
+      return clientErrors;
+    }
+  }, [isSelection, text, url]);
+
+  const setLinkUrl = useCallback(() => {
+    const validationResult = validate();
+    if (validationResult) {
+      return setInputErrors(validationResult);
+    }
+    setLink(isSelection, url, text);
+  }, [isSelection, setLink, text, url, validate]);
 
   const checkInputBlockOnBlur = useCallback(
     (e: MouseEvent) => {
-      let node = e.target as HTMLElement;
-      while (node !== document.body) {
-        if (node === inputBlock.current) {
+      let element = e.target as HTMLElement;
+      while (element !== document.body) {
+        if (element === inputBlock.current) {
           return;
         }
-        node = node.parentElement!;
+        element = element.parentElement!;
       }
       closeLinkInput();
     },
     [closeLinkInput]
   );
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    window.addEventListener("click", checkInputBlockOnBlur);
-    return () => {
-      window.removeEventListener("click", checkInputBlockOnBlur);
-    };
-  }, [checkInputBlockOnBlur]);
-
-  useEffect(() => {
-    if (!isMounted) {
-      setPosition();
-    }
-  }, [isMounted, setPosition]);
-
-  return createPortal(
-    <div className="rte-link-input">
-      <div className="rte-link-input__triangle" ref={tooltipTriangle} />
-      <div className="rte-link-input__input-block" ref={inputBlock}>
+  return (
+    <RTELinkModal coordinates={coordinates} checkModalOnBlur={checkInputBlockOnBlur}>
+      <div className="rte-link-input" ref={inputBlock}>
         {!isSelection && (
           <div className="rte-link-input__text">
             <InputGroup
@@ -147,8 +132,7 @@ const RTELinkInput: React.FC<IRTELinkInputProps> = ({
           Insert
         </button>
       </div>
-    </div>,
-    document.body
+    </RTELinkModal>
   );
 };
 

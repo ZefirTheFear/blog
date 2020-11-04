@@ -1,0 +1,38 @@
+@import "../../utils/css/variables";
+@import "../../utils/css/mixins";
+
+.rte-link-options {
+  padding: 0.75rem;
+}
+
+.rte-link-options__controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rte-link-options__link {
+  height: 1rem;
+  line-height: 1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.8rem;
+}
+
+.rte-link-options__option {
+  @include text-main-color-with-hover;
+}
+
+.rte-link-options__devider {
+  height: 1rem;
+  margin: 0 0.5rem;
+  border-left: 2px solid white;
+}
+
+.rte-link-options__input {
+  margin-bottom: 0.5rem;
+}
+
+.rte-link-options__btn {
+  @include button;
+}

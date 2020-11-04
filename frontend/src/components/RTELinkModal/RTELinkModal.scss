@@ -1,0 +1,35 @@
+@import "../../utils/css/variables";
+@import "../../utils/css/mixins";
+
+.rte-link-modal {
+  color: $dark-color;
+  background: $light-color;
+}
+
+.rte-link-modal_dark-mode {
+  color: $light-color;
+  background: $dark-color;
+}
+
+.rte-link-modal__triangle {
+  position: absolute;
+  display: none;
+  width: $rte-link-modal-triangle-side;
+  height: $rte-link-modal-triangle-side;
+  background: inherit;
+  border-left: 1px solid $common-grey-color;
+  border-top: 1px solid $common-grey-color;
+  transform: translate(-50%, 0) rotate(45deg);
+  z-index: $rte-link-modal-triangle-z-i;
+}
+
+.rte-link-modal__inner {
+  position: absolute;
+  display: none;
+  width: $modal-inner-width;
+  background: inherit;
+  border: 1px solid $common-grey-color;
+  border-radius: $main-border-radius;
+  transform: translateY(calc(#{$rte-link-modal-triangle-side} / 2));
+  z-index: $rte-link-modal-z-i;
+}

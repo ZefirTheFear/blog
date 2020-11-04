@@ -1,28 +1,8 @@
 @import "../../utils/css/variables";
 @import "../../utils/css/mixins";
 
-.rte-link-input__triangle {
-  position: absolute;
-  display: none;
-  width: $rte-link-input-triangle-side;
-  height: $rte-link-input-triangle-side;
-  background: $dark-color;
-  border-left: 1px solid $common-grey-color;
-  border-top: 1px solid $common-grey-color;
-  transform: translate(-50%, 0) rotate(45deg);
-  z-index: $rte-link-input-triangle-z-i;
-}
-
-.rte-link-input__input-block {
-  position: absolute;
-  display: none;
-  width: $modal-inner-width;
+.rte-link-input {
   padding: 0.75rem;
-  background: $dark-color;
-  border: 1px solid $common-grey-color;
-  border-radius: $main-border-radius;
-  transform: translateY(calc(#{$rte-link-input-triangle-side} / 2));
-  z-index: $rte-link-input-z-i;
 }
 
 .rte-link-input__text,
