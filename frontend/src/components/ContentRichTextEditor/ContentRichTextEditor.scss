@@ -13,6 +13,18 @@
   @include content-item-is-dragging;
 }
 
+.content-rte-options-toggler-btn {
+  @include button;
+  font-size: 0.8rem;
+  width: auto;
+}
+
+.content-rte__editing-options {
+  transition: $main-transition;
+  height: 0;
+  overflow: hidden;
+}
+
 .content-rte_placeholder_hidden {
   .public-DraftEditorPlaceholder-inner {
     display: none;

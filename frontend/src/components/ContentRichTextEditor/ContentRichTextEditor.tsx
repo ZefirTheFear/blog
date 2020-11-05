@@ -12,14 +12,10 @@ import {
   DraftBlockRenderConfig,
   DraftHandleValue,
   DraftStyleMap,
-  convertToRaw,
-  convertFromRaw,
   Modifier
 } from "draft-js";
 import * as Immutable from "immutable";
 import "draft-js/dist/Draft.css";
-import { stateToHTML, Options } from "draft-js-export-html";
-import parse from "html-react-parser";
 
 import RTELink from "../RTELink/RTELink";
 import RTELinkInput from "../RTELinkInput/RTELinkInput";
@@ -32,14 +28,13 @@ import RTEInlineStyleControls, {
   CoreInlineType,
   CustomInlineType
 } from "../RTEInlineStyleControls/RTEInlineStyleControls";
+// import RTEDevOnly from "../RTEDevOnly/RTEDevOnly";
 
 import { RootState } from "../../redux/store";
 
 import removeEntity from "../../utils/ts/rte/removeEntity";
 import changeUrl from "../../utils/ts/rte/changeLinkUrl";
 import findLinkEntities from "../../utils/ts/rte/findLinkEntities";
-import addWrapperToCodeBlocks from "../../utils/ts/rte/addWrapperToCodeBlocks";
-import addClassToLists from "../../utils/ts/rte/addClassToLists";
 
 import globalStyles from "../../utils/css/variables.scss";
 import "./ContentRichTextEditor.scss";
@@ -56,6 +51,7 @@ export interface ICoordinates {
 const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDragging }) => {
   const editor = useRef<Editor>(null!);
   const editorWrapper = useRef<HTMLDivElement>(null!);
+  const editingOptions = useRef<HTMLDivElement>(null!);
 
   const isDarkTheme = useSelector((state: RootState) => state.darkTheme.isDarkTheme);
 
@@ -67,6 +63,8 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
   ]);
 
   const [editorState, setEditorState] = useState(() => EditorState.createEmpty(decorator));
+  const [isOpenEditingOptions, setIsOpenEditingOptions] = useState(false);
+
   const [isShowLinkInput, setIsShowLinkInput] = useState(false);
   const [caretCoordinates, setCaretCoordinates] = useState<ICoordinates>({ top: 0, left: 0 });
 
@@ -76,6 +74,16 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
     top: 0,
     left: 0
   });
+
+  const toggleEditingOptions = useCallback(() => {
+    const elem = editingOptions.current;
+    if (isOpenEditingOptions) {
+      elem.style.height = "0";
+    } else {
+      elem.style.height = elem.scrollHeight + "px";
+    }
+    setIsOpenEditingOptions((prevState) => !prevState);
+  }, [isOpenEditingOptions]);
 
   const toggleBlockType = useCallback(
     (blockType: DraftBlockType): void => {
@@ -286,9 +294,7 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
 
   const isSelection = useMemo((): boolean => {
     const currentSelection = editorState.getSelection();
-    const start = currentSelection.getStartOffset();
-    const end = currentSelection.getEndOffset();
-    return start !== end;
+    return !currentSelection.isCollapsed();
   }, [editorState]);
 
   const setInputCoords = useCallback((): void => {
@@ -312,10 +318,6 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
   }, []);
 
   const openLinkInput = useCallback(() => {
-    // const selection = editorState.getSelection();
-    // if (selection.isCollapsed()) {
-    //   return;
-    // }
     setIsShowLinkInput(true);
   }, []);
 
@@ -344,118 +346,6 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
     }
   }, [editorState, setInputCoords]);
 
-  // -------- dev only --------
-  const convertOptions = useMemo<Options>(() => {
-    return {
-      defaultBlockTag: "p",
-      blockStyleFn: (block) => {
-        switch (block.getType()) {
-          case CoreBlockType.headerFour:
-            return {
-              attributes: { class: "content-h4" }
-            };
-          case CoreBlockType.blockquote:
-            return {
-              attributes: { class: "content-blockquote" }
-            };
-          case CoreBlockType.unorderedLI:
-            return {
-              attributes: { class: "content-uli" }
-            };
-          case CoreBlockType.orderedLI:
-            return {
-              attributes: { class: "content-oli" }
-            };
-          default:
-            return {};
-        }
-      },
-
-      blockRenderers: {
-        [CustomBlockType.section]: (block) => {
-          return `<section class="content-section">${escape(block.getText())}</section>`;
-        }
-      },
-
-      inlineStyles: {
-        [CoreInlineType.bold]: { element: "span", attributes: { class: "content-bold" } },
-        [CoreInlineType.italic]: { element: "span", attributes: { class: "content-italic" } },
-        [CoreInlineType.underline]: { element: "span", attributes: { class: "content-underline" } },
-        [CoreInlineType.strikethrough]: {
-          element: "span",
-          attributes: { class: "content-strikethrough" }
-        },
-        [CoreInlineType.code]: { attributes: { class: "content-inline-code" } },
-        [CustomInlineType.superscript]: {
-          element: "sup",
-          attributes: { class: "content-sup" }
-        },
-        [CustomInlineType.subscript]: {
-          element: "sub",
-          attributes: { class: "content-sub" }
-        },
-        [CustomInlineType.highlight]: { attributes: { class: "content-highlight" } }
-      },
-      entityStyleFn: (entity) => {
-        if (entity.getType() === CustomInlineType.link) {
-          return {
-            element: "a",
-            attributes: {
-              class: "content-link",
-              href: entity.getData().url,
-              target: "_blank"
-            }
-          };
-        }
-      }
-    };
-  }, []);
-
-  const getContentAsRawJson = useCallback(() => {
-    const contentState = editorState.getCurrentContent();
-    const raw = convertToRaw(contentState);
-    return JSON.stringify(raw, null, 2);
-  }, [editorState]);
-
-  const logState = useCallback((): void => {
-    console.log(convertToRaw(editorState.getCurrentContent()));
-  }, [editorState]);
-
-  const saveContent = useCallback(() => {
-    const json = getContentAsRawJson();
-    localStorage.setItem("DraftEditorContentJson", json);
-  }, [getContentAsRawJson]);
-
-  const loadContent = useCallback(() => {
-    const savedData = localStorage.getItem("DraftEditorContentJson");
-    return savedData ? JSON.parse(savedData) : null;
-  }, []);
-
-  const setEditorContent = useCallback(() => {
-    const rawEditorData = loadContent();
-    if (rawEditorData !== null) {
-      const contentState = convertFromRaw(rawEditorData);
-      const newEditorState = EditorState.createWithContent(contentState, decorator);
-      setEditorState(newEditorState);
-    } else {
-      setEditorState(EditorState.createEmpty(decorator));
-    }
-  }, [decorator, loadContent]);
-
-  // const html = useMemo(() => {
-  //   const rawEditorData = loadContent();
-  //   let contentState;
-  //   if (rawEditorData !== null) {
-  //     contentState = convertFromRaw(rawEditorData);
-  //   }
-  //   if (contentState) {
-  //     return stateToHTML(contentState, convertOptions);
-  //   } else {
-  //     return "";
-  //   }
-  // }, [convertOptions, loadContent]);
-  // --------------------------
-
   const rteClassName = useMemo(() => {
     let className = "content-rte" + (isDragging ? " content-rte_is-dragging" : "");
     const contentState = editorState.getCurrentContent();
@@ -472,16 +362,27 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
 
   return (
     <div className={rteClassName}>
-      <div className="content-rte__block-styles">
-        <RTEBlockStyleControls editorState={editorState} onToggle={toggleBlockType} />
+      <div className="content-rte-options-toggler">
+        <button
+          className="content-rte-options-toggler-btn"
+          type="button"
+          onClick={toggleEditingOptions}
+        >
+          {isOpenEditingOptions ? "hide " : "show "} editing options
+        </button>
       </div>
-      <div className="content-rte__inline-styles">
-        <RTEInlineStyleControls
-          editorState={editorState}
-          onToggle={toggleInlineStyle}
-          unLink={unLink}
-          openLinkInput={openLinkInput}
-        />
+      <div className="content-rte__editing-options" ref={editingOptions}>
+        <div className="content-rte__block-styles">
+          <RTEBlockStyleControls editorState={editorState} onToggle={toggleBlockType} />
+        </div>
+        <div className="content-rte__inline-styles">
+          <RTEInlineStyleControls
+            editorState={editorState}
+            onToggle={toggleInlineStyle}
+            unLink={unLink}
+            openLinkInput={openLinkInput}
+          />
+        </div>
       </div>
       {isShowLinkInput && (
         <RTELinkInput
@@ -516,29 +417,7 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
         />
       )}
       {/* dev only */}
-      <button className="dev-btn" onClick={logState}>
-        Log State
-      </button>
-      <button className="dev-btn" onClick={saveContent}>
-        Save content
-      </button>
-      <button className="dev-btn" onClick={setEditorContent}>
-        Load content
-      </button>
-      <div className="rich-text-editor__html-preview">
-        <pre>
-          {addClassToLists(
-            addWrapperToCodeBlocks(stateToHTML(editorState.getCurrentContent(), convertOptions))
-          )}
-        </pre>
-      </div>
-      <div className="rich-text-editor__html-preview">
-        {parse(
-          addClassToLists(
-            addWrapperToCodeBlocks(stateToHTML(editorState.getCurrentContent(), convertOptions))
-          )
-        )}
-      </div>
+      {/* <RTEDevOnly decorator={decorator} editorState={editorState} setEditorState={setEditorState} /> */}
       {/*  */}
     </div>
   );

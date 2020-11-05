@@ -31,7 +31,7 @@ const RTELinkModal: React.FC<IRTELinkModalProps> = ({
     tooltipTriangle.current.style.display = "block";
 
     const clientWidth = document.documentElement.clientWidth;
-    const inputBlockoffsetWidth = parseInt(getComputedStyle(modalInner.current).width);
+    const inputBlockoffsetWidth = parseInt(getComputedStyle(modalInner.current).width, 10);
     if (clientWidth / inputBlockoffsetWidth < 1.5) {
       modalInner.current.style.left = (clientWidth - inputBlockoffsetWidth) / 2 + "px";
     } else if (coordinates.left < clientWidth / 2) {
