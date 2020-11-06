@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import cloneDeep from "clone-deep";
 
 import { FaPlus, FaTrashAlt } from "react-icons/fa";
@@ -9,10 +9,11 @@ import InvalidFeedback from "../InvalidFeedback/InvalidFeedback";
 import "./TagsMaker.scss";
 
 interface ITagsMakerProps {
+  sendTagsToParent: (tags: string[]) => void;
   errors?: string[];
 }
 
-const TagsMaker: React.FC<ITagsMakerProps> = ({ errors }) => {
+const TagsMaker: React.FC<ITagsMakerProps> = ({ sendTagsToParent, errors }) => {
   const [tags, setTags] = useState<string[]>([
     "random tag",
     "1234567890123456789012345678901234567890",
@@ -72,6 +73,10 @@ const TagsMaker: React.FC<ITagsMakerProps> = ({ errors }) => {
     },
     [tags]
   );
+
+  useEffect(() => {
+    sendTagsToParent(tags);
+  }, [sendTagsToParent, tags]);
 
   return (
     <div className="tags-maker">

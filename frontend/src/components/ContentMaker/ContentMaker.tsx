@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useMemo, useRef } from "react";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
+import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { v4 as uuid } from "uuid";
 import cloneDeep from "clone-deep";
 
@@ -20,6 +20,8 @@ import {
 import "./ContentMaker.scss";
 
 interface IContentMakerProps {
+  sendContentToParent: (data: ContentUnitToSend[]) => void;
+  loadedData?: ContentUnitToSend[];
   errors?: string[];
 }
 
@@ -30,22 +32,47 @@ interface IAddingOptions {
   onClick: () => void;
 }
 
-const ContentMaker: React.FC<IContentMakerProps> = ({ errors }) => {
+const ContentMaker: React.FC<IContentMakerProps> = ({
+  sendContentToParent,
+  loadedData,
+  errors
+}) => {
   const imgInput = useRef<HTMLInputElement>(null!);
 
-  const [contentData, setContentData] = useState<ContentUnitToSend[]>([
-    { id: "1", type: ContentUnitTypes.text, content: "content" }
-  ]);
+  const [contentData, setContentData] = useState<ContentUnitToSend[]>([]);
 
-  const onDragEnd = useCallback(() => {
-    console.log("in progress");
-  }, []);
+  const onDragEnd = useCallback(
+    (result: DropResult) => {
+      const { destination, source, draggableId } = result;
+
+      if (!destination || destination.index === source.index) {
+        return;
+      }
+
+      const newContentData = cloneDeep(contentData);
+      const draggableItem = newContentData.find((item) => item.id === draggableId);
+      if (draggableItem) {
+        newContentData.splice(source.index, 1);
+        newContentData.splice(destination.index, 0, draggableItem);
+        setContentData(newContentData);
+      }
+    },
+    [contentData]
+  );
 
   const addTextBlock = useCallback(() => {
     setContentData((prevContentData) => [
       ...prevContentData,
-      { type: ContentUnitTypes.text, content: "some content", id: uuid() }
+      { id: uuid(), type: ContentUnitTypes.text, content: "" }
     ]);
+  }, []);
+
+  const onChangeTextBlockData = useCallback((content: string, index: number) => {
+    setContentData((prevState) => {
+      const newContentData = cloneDeep(prevState);
+      newContentData[index].content = content;
+      return newContentData;
+    });
   }, []);
 
   const clickImgInput = useCallback(() => {
@@ -96,6 +123,16 @@ const ContentMaker: React.FC<IContentMakerProps> = ({ errors }) => {
     ];
   }, [addTextBlock, clickImgInput]);
 
+  useEffect(() => {
+    if (loadedData) {
+      setContentData(loadedData);
+    }
+  }, [loadedData]);
+
+  useEffect(() => {
+    sendContentToParent(contentData);
+  }, [contentData, sendContentToParent]);
+
   return (
     <div className="content-maker">
       <div
@@ -134,9 +171,14 @@ const ContentMaker: React.FC<IContentMakerProps> = ({ errors }) => {
                           <CgArrowsVAlt />
                         </span>
                         {item.type === ContentUnitTypes.text ? (
-                          <ContentRichTextEditor isDragging={snapshot.isDragging} />
+                          <ContentRichTextEditor
+                            content={item.content}
+                            index={index}
+                            onChangeTextBlockData={onChangeTextBlockData}
+                            isDragging={snapshot.isDragging}
+                          />
                         ) : (
-                          <ContentImage isDragging={snapshot.isDragging} url={item.url} />
+                          <ContentImage url={item.url} isDragging={snapshot.isDragging} />
                         )}
                         <span
                           className="content-maker__content-item-remove"

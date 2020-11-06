@@ -12,7 +12,9 @@ import {
   DraftBlockRenderConfig,
   DraftHandleValue,
   DraftStyleMap,
-  Modifier
+  Modifier,
+  convertFromRaw,
+  convertToRaw
 } from "draft-js";
 import * as Immutable from "immutable";
 import "draft-js/dist/Draft.css";
@@ -40,6 +42,9 @@ import globalStyles from "../../utils/css/variables.scss";
 import "./ContentRichTextEditor.scss";
 
 interface IContentRichTextEditorProps {
+  content: string;
+  index: number;
+  onChangeTextBlockData: (content: string, index: number) => void;
   isDragging: boolean;
 }
 
@@ -48,7 +53,12 @@ export interface ICoordinates {
   left: number;
 }
 
-const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDragging }) => {
+const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({
+  content,
+  index,
+  onChangeTextBlockData,
+  isDragging
+}) => {
   const editor = useRef<Editor>(null!);
   const editorWrapper = useRef<HTMLDivElement>(null!);
   const editingOptions = useRef<HTMLDivElement>(null!);
@@ -62,7 +72,16 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
     }
   ]);
 
-  const [editorState, setEditorState] = useState(() => EditorState.createEmpty(decorator));
+  // const [editorState, setEditorState] = useState(() => EditorState.createEmpty(decorator));
+  const [editorState, setEditorState] = useState(() => {
+    if (content === "") {
+      return EditorState.createEmpty(decorator);
+    } else {
+      const contentState = convertFromRaw(JSON.parse(content));
+      return EditorState.createWithContent(contentState, decorator);
+    }
+  });
+
   const [isOpenEditingOptions, setIsOpenEditingOptions] = useState(false);
 
   const [isShowLinkInput, setIsShowLinkInput] = useState(false);
@@ -345,6 +364,12 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({ isDraggi
       setInputCoords();
     }
   }, [editorState, setInputCoords]);
+
+  useEffect(() => {
+    const contentState = editorState.getCurrentContent();
+    const rawState = convertToRaw(contentState);
+    onChangeTextBlockData(JSON.stringify(rawState, null, 2), index);
+  }, [editorState, index, onChangeTextBlockData]);
 
   const rteClassName = useMemo(() => {
     let className = "content-rte" + (isDragging ? " content-rte_is-dragging" : "");

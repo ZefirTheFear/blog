@@ -29,7 +29,7 @@ const AddOrEditPost: React.FC = () => {
 
   const [postTitle, setPostTitle] = useState("");
   const [postBody, setPostBody] = useState<ContentUnitToSend[]>([]);
-  const [tags, setTags] = useState<string[]>([]);
+  const [postTags, setPostTags] = useState<string[]>([]);
   const [inputErrors, setInputErrors] = useState<IAddOrEditPostInputErrors>({});
 
   const changePostTitleValue = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,10 +45,25 @@ const AddOrEditPost: React.FC = () => {
     [inputErrors]
   );
 
-  const addOrEditPost = useCallback((e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    console.log("in progress");
+  const setContent = useCallback((content: ContentUnitToSend[]) => {
+    setPostBody(content);
   }, []);
+
+  const setTags = useCallback((tags: string[]) => {
+    setPostTags(tags);
+  }, []);
+
+  const addOrEditPost = useCallback(
+    (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      // TODO validation
+      console.log("in progress");
+      console.log("title", postTitle);
+      console.log("postBody", postBody);
+      console.log("tags", postTags);
+    },
+    [postBody, postTitle, postTags]
+  );
 
   useEffect(() => {
     return () => {
@@ -72,10 +87,10 @@ const AddOrEditPost: React.FC = () => {
           />
         </div>
         <div className="add-or-edit-post__content-maker">
-          <ContentMaker />
+          <ContentMaker sendContentToParent={setContent} />
         </div>
         <div className="add-or-edit-post__tags-maker">
-          <TagsMaker />
+          <TagsMaker sendTagsToParent={setTags} />
         </div>
 
         <button type="submit" className="add-or-edit-post__submit-btn">

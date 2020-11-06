@@ -130,13 +130,13 @@ const RTEDevOnly: React.FC<IRTEDevOnlyProps> = ({ decorator, editorState, setEdi
 
   return (
     <div className="rte-dev-only">
-      <button className="dev-btn" onClick={logState}>
+      <button className="dev-btn" type="button" onClick={logState}>
         Log State
       </button>
-      <button className="dev-btn" onClick={saveContent}>
+      <button className="dev-btn" type="button" onClick={saveContent}>
         Save content
       </button>
-      <button className="dev-btn" onClick={setEditorContent}>
+      <button className="dev-btn" type="button" onClick={setEditorContent}>
         Load content
       </button>
       <div className="rich-text-editor__html-preview">
