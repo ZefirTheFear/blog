@@ -1,11 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.PostBodyUnitTypes = void 0;
 var mongoose_1 = require("mongoose");
 var PostBodyUnitTypes;
 (function (PostBodyUnitTypes) {
     PostBodyUnitTypes["text"] = "text";
     PostBodyUnitTypes["image"] = "image";
-})(PostBodyUnitTypes || (PostBodyUnitTypes = {}));
+})(PostBodyUnitTypes = exports.PostBodyUnitTypes || (exports.PostBodyUnitTypes = {}));
 var PostSchema = new mongoose_1.Schema({
     title: {
         type: String,

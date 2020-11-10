@@ -3,7 +3,7 @@ export enum ContentUnitTypes {
   image = "image"
 }
 
-interface ITextContentUnit {
+export interface ITextContentUnit {
   id: string;
   type: ContentUnitTypes.text;
   content: string;

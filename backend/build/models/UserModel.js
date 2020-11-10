@@ -40,7 +40,13 @@ var UserSchema = new mongoose_1.Schema({
         type: String,
         required: true,
         default: UserStatus.user
-    }
+    },
+    posts: [
+        {
+            type: mongoose_1.Schema.Types.ObjectId,
+            ref: "Post"
+        }
+    ]
 }, { timestamps: true });
 // UserSchema.set("toJSON", {
 //   transform: (_, ret) => {

@@ -1,5 +1,7 @@
 import { Schema, model, Document } from "mongoose";
 
+import { IPost } from "./PostModel";
+
 enum UserStatus {
   user = "user",
   moderator = "moderator",
@@ -13,6 +15,7 @@ export interface IUser extends Document {
   password: string;
   avatar: { url: string; publicId: string };
   status: UserStatus;
+  posts: IPost["_id"][];
 }
 
 const UserSchema = new Schema(
@@ -51,7 +54,13 @@ const UserSchema = new Schema(
       type: String,
       required: true,
       default: UserStatus.user
-    }
+    },
+    posts: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Post"
+      }
+    ]
   },
   { timestamps: true }
 );

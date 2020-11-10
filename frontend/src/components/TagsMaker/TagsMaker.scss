@@ -11,13 +11,17 @@
   }
 }
 
+.tags-maker__tags_invalid {
+  border-color: $invalid-color !important;
+}
+
 .tags-maker__input-group {
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.tags-maker__input-group-inner {
+.tags-maker__input {
   width: 250px;
 }
 

@@ -367,6 +367,12 @@ const ContentRichTextEditor: React.FC<IContentRichTextEditorProps> = ({
 
   useEffect(() => {
     const contentState = editorState.getCurrentContent();
+    // -----
+    if (contentState.getPlainText().trim() === "") {
+      onChangeTextBlockData("", index);
+      return;
+    }
+    // -----
     const rawState = convertToRaw(contentState);
     onChangeTextBlockData(JSON.stringify(rawState, null, 2), index);
   }, [editorState, index, onChangeTextBlockData]);

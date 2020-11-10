@@ -19,17 +19,19 @@ var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 exports.isAuth = function (req, res, next) {
     var jwtToken = req.get("Authorization");
     if (!jwtToken) {
-        return res.status(401).json({ status: "error", serverError: { customMsg: "auth failed" } });
+        res.status(401).json({ status: "error", serverError: { customMsg: "auth failed" } });
+        return;
     }
     var decodedToken;
     try {
         decodedToken = jsonwebtoken_1.default.verify(jwtToken, process.env.JWT_KEY);
     }
     catch (error) {
-        return res
-            .status(403)
-            .json({ status: "error", serverError: __assign({ customMsg: "auth failed" }, error) });
+        res.status(403).json({ status: "error", serverError: __assign({ customMsg: "auth failed" }, error) });
+        return;
     }
-    req.body.userId = decodedToken.userId;
+    // req.body.userId = decodedToken.userId;
+    // req["userId"] = decodedToken.userId;
+    req.userId = decodedToken.userId;
     next();
 };

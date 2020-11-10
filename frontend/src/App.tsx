@@ -61,8 +61,8 @@ const App: React.FC = () => {
 
     axios
       .get<ISuccessfulCheckUserResponseData>("/users/check-user", {
-        cancelToken: signal.token,
-        headers: { Authorization: jwtToken }
+        headers: { Authorization: jwtToken },
+        cancelToken: signal.token
       })
       .then((response) => {
         console.log(response.data);

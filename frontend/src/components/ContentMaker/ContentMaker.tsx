@@ -139,7 +139,6 @@ const ContentMaker: React.FC<IContentMakerProps> = ({
         className={
           "content-maker__constructor" + (errors ? " content-maker__constructor_invalid" : "")
         }
-        // onClick={focusContentMaker}
       >
         <DragDropContext onDragEnd={onDragEnd}>
           <Droppable droppableId="column-1">

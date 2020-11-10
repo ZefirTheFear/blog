@@ -39,7 +39,7 @@ export const registerUser: RequestHandler<
       .json({ status: "error", serverError: { customMsg: "oops. some problems", ...error } });
   }
 
-  const newUser = new User({ nickname, email, password: hashedPassword });
+  const newUser = new User({ nickname, email, password: hashedPassword } as IUser);
   let savedUser: IUser;
   try {
     savedUser = await newUser.save();
@@ -236,7 +236,7 @@ export const loginUser: RequestHandler<
 interface ICheckUserRequestBody {
   nickname: string;
   password: string;
-  userId: string;
+  // userId: string;
 }
 interface ICheckUserResponseBody {
   status: string;
@@ -251,7 +251,7 @@ export const checkUser: RequestHandler<
   ICheckUserResponseBody,
   ICheckUserRequestBody
 > = async (req, res) => {
-  const { userId } = req.body;
+  const userId = req.userId;
 
   let user: IUser | null;
   try {

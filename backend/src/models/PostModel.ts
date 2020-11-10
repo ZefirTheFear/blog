@@ -2,7 +2,7 @@ import { Schema, Document, model } from "mongoose";
 
 import { IUser } from "./UserModel";
 
-enum PostBodyUnitTypes {
+export enum PostBodyUnitTypes {
   text = "text",
   image = "image"
 }
@@ -17,7 +17,7 @@ interface IImagePostBodyUnit {
   publicId: string;
 }
 
-type PostBodyUnit = ITextPostBodyUnit | IImagePostBodyUnit;
+export type PostBodyUnit = ITextPostBodyUnit | IImagePostBodyUnit;
 
 export interface IPost extends Document {
   title: string;

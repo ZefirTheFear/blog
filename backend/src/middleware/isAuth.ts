@@ -12,17 +12,19 @@ interface IIsAuthResBody {
 export const isAuth: RequestHandler<ParamsDictionary, IIsAuthResBody> = (req, res, next) => {
   const jwtToken = req.get("Authorization");
   if (!jwtToken) {
-    return res.status(401).json({ status: "error", serverError: { customMsg: "auth failed" } });
+    res.status(401).json({ status: "error", serverError: { customMsg: "auth failed" } });
+    return;
   }
 
   let decodedToken;
   try {
     decodedToken = jwt.verify(jwtToken, process.env.JWT_KEY as jwt.Secret) as jwtPayload;
   } catch (error) {
-    return res
-      .status(403)
-      .json({ status: "error", serverError: { customMsg: "auth failed", ...error } });
+    res.status(403).json({ status: "error", serverError: { customMsg: "auth failed", ...error } });
+    return;
   }
-  req.body.userId = decodedToken.userId;
+  // req.body.userId = decodedToken.userId;
+  // req["userId"] = decodedToken.userId;
+  req.userId = decodedToken.userId;
   next();
 };
