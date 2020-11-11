@@ -129,7 +129,7 @@ const ForgotPassword: React.FC<IForgotPasswordProps> = ({ setAuthModeToLogin }) 
           if (error.response) {
             console.log(error.response);
             if (error.response.data.validationErrors) {
-              const inputErrors = convertInputErrors(error.response.data.validationErrors!);
+              const inputErrors = convertInputErrors(error.response.data.validationErrors);
               setInputErrors(inputErrors);
             } else {
               setIsSomethingWentWrong(true);

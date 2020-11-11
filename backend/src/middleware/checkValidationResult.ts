@@ -4,6 +4,8 @@ import { validationResult } from "express-validator";
 
 import { IValidationError } from "../validations/IValidationError";
 
+import { deleteReqImages } from "../utils/deleteReqImages";
+
 interface IChechValidationResBody {
   status: string;
   validationErrors?: IValidationError[];
@@ -25,6 +27,7 @@ export const checkValidationResult: RequestHandler<ParamsDictionary, IChechValid
       }
     });
     const newErrors = myValidationResult(req);
+    deleteReqImages(req);
     return res.status(422).json({ status: "error", validationErrors: newErrors.array() });
   }
   next();

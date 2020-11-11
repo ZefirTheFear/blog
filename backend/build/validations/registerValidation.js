@@ -47,7 +47,7 @@ exports.registerValidation = [
         .isString()
         .withMessage("only a string")
         .isLength({ min: 1, max: 40 })
-        .withMessage("from 5 to 40 chars")
+        .withMessage("from 1 to 40 chars")
         .custom(function (value) { return __awaiter(void 0, void 0, void 0, function () {
         var user;
         return __generator(this, function (_a) {

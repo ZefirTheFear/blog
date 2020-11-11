@@ -69,9 +69,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createPost = void 0;
+exports.getPosts = exports.createPost = void 0;
 var cloudinary_1 = require("cloudinary");
-var deleteImage_1 = require("../utils/deleteImage");
+var deleteReqImages_1 = require("../utils/deleteReqImages");
+// import { deleteImage } from "../utils/deleteImage";
 var PostModel_1 = __importStar(require("../models/PostModel"));
 var UserModel_1 = __importDefault(require("../models/UserModel"));
 exports.createPost = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
@@ -112,13 +113,13 @@ exports.createPost = function (req, res) { return __awaiter(void 0, void 0, void
                 return [3 /*break*/, 6];
             case 5:
                 error_1 = _a.sent();
-                deleteImage_1.deleteImage(images[0].path);
+                deleteReqImages_1.deleteReqImages(req);
                 return [2 /*return*/, res.json({
                         status: "error",
                         serverError: __assign({ customMsg: "oops. some problems" }, error_1)
                     })];
             case 6:
-                deleteImage_1.deleteImage(images[0].path);
+                // deleteImage(images[0].path);
                 postBody.push({
                     type: PostModel_1.PostBodyUnitTypes.image,
                     url: result.secure_url,
@@ -130,6 +131,7 @@ exports.createPost = function (req, res) { return __awaiter(void 0, void 0, void
                 _i++;
                 return [3 /*break*/, 1];
             case 8:
+                deleteReqImages_1.deleteReqImages(req);
                 newPost = new PostModel_1.default({
                     title: title,
                     body: postBody,
@@ -179,6 +181,37 @@ exports.createPost = function (req, res) { return __awaiter(void 0, void 0, void
                         serverError: __assign({ customMsg: "oops. user updating problem" }, error_4)
                     })];
             case 19: return [2 /*return*/, res.status(201).json({ status: "success" })];
+        }
+    });
+}); };
+exports.getPosts = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var currentPage, perPage, posts, error_5;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                currentPage = parseInt(req.get("Page") || "1", 10);
+                perPage = 5;
+                _a.label = 1;
+            case 1:
+                _a.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, PostModel_1.default.find()
+                        .populate("creator", "nickname avatar")
+                        .sort({ createdAt: -1 })
+                        .skip((currentPage - 1) * perPage)
+                        .limit(perPage)];
+            case 2:
+                posts = _a.sent();
+                return [3 /*break*/, 4];
+            case 3:
+                error_5 = _a.sent();
+                return [2 /*return*/, res
+                        .status(400)
+                        .json({ status: "error", serverError: __assign({ customMsg: "bad request" }, error_5) })];
+            case 4:
+                if (!posts) {
+                    posts = [];
+                }
+                return [2 /*return*/, res.json({ status: "success", posts: posts })];
         }
     });
 }); };

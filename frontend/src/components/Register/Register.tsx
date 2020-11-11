@@ -160,7 +160,7 @@ const Register: React.FC<IRegisterProps> = ({ setAuthModeToLogin }) => {
           if (error.response) {
             console.log(error.response);
             if (error.response.data.validationErrors) {
-              const inputErrors = convertInputErrors(error.response.data.validationErrors!);
+              const inputErrors = convertInputErrors(error.response.data.validationErrors);
               setInputErrors(inputErrors);
             } else {
               setIsSomethingWentWrong(true);

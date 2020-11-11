@@ -5,7 +5,7 @@ export const loginValidation = [
     .isString()
     .withMessage("only a string")
     .isLength({ min: 1, max: 40 })
-    .withMessage("from 5 to 40 chars"),
+    .withMessage("from 1 to 40 chars"),
   body("password")
     .isString()
     .withMessage("only a string")

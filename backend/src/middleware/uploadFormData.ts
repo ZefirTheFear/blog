@@ -22,4 +22,4 @@ const fileFilter = (
   }
 };
 
-export const uploadImages = multer({ storage, fileFilter }).array("images");
+export const uploadFormData = multer({ storage, fileFilter }).array("images");

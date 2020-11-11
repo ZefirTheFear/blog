@@ -23,28 +23,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var express_1 = __importDefault(require("express"));
-// import multer, { FileFilterCallback } from "multer";
 var isAuth_1 = require("./../middleware/isAuth");
-var uploadImages_1 = require("./../middleware/uploadImages");
+var addOrEditPostValidation_1 = require("./../validations/addOrEditPostValidation");
+var checkValidationResult_1 = require("./../middleware/checkValidationResult");
+var uploadFormData_1 = require("../middleware/uploadFormData");
 var postController = __importStar(require("../controllers/postController"));
 var router = express_1.default.Router();
-// ------ multer --------
-// const storage = multer.diskStorage({
-//   destination: (_req, _file, cb) => cb(null, "images"),
-//   filename: (_req, file, cb) => cb(null, Date.now().toString() + file.originalname)
-// });
-// const fileFilter = (_req: express.Request, file: Express.Multer.File, cb: FileFilterCallback) => {
-//   if (
-//     file.mimetype === "image/png" ||
-//     file.mimetype === "image/jpg" ||
-//     file.mimetype === "image/jpeg"
-//   ) {
-//     cb(null, true);
-//   } else {
-//     cb(null, false);
-//   }
-// };
-// const uploadImages = multer({ storage, fileFilter }).array("images");
-// ----------------------
-router.post("/create-post", isAuth_1.isAuth, uploadImages_1.uploadImages, postController.createPost);
+router.post("/create-post", isAuth_1.isAuth, uploadFormData_1.uploadFormData, addOrEditPostValidation_1.addOrEditPostValidation, checkValidationResult_1.checkValidationResult, postController.createPost);
+router.get("/get-posts", postController.getPosts);
 exports.default = router;

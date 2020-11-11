@@ -2,7 +2,8 @@ import { RequestHandler } from "express";
 import { ParamsDictionary } from "express-serve-static-core";
 import { v2 as cloudinary, UploadApiResponse } from "cloudinary";
 
-import { deleteImage } from "../utils/deleteImage";
+import { deleteReqImages } from "../utils/deleteReqImages";
+// import { deleteImage } from "../utils/deleteImage";
 
 import Post, { PostBodyUnit, PostBodyUnitTypes, IPost } from "../models/PostModel";
 import User, { IUser } from "../models/UserModel";
@@ -22,7 +23,6 @@ export const createPost: RequestHandler<
   ICreatePostResponseBody,
   ICreatePostRequestBody
 > = async (req, res) => {
-  // TODO Validation
   // console.log("body", req.body);
   // console.log("files", req.files);
   // return;
@@ -49,13 +49,13 @@ export const createPost: RequestHandler<
           public_id: `blog/post-imgs/${images[0].filename}`
         });
       } catch (error) {
-        deleteImage(images[0].path);
+        deleteReqImages(req);
         return res.json({
           status: "error",
           serverError: { customMsg: "oops. some problems", ...error }
         });
       }
-      deleteImage(images[0].path);
+      // deleteImage(images[0].path);
       postBody.push({
         type: PostBodyUnitTypes.image,
         url: result.secure_url,
@@ -64,6 +64,7 @@ export const createPost: RequestHandler<
       images = images.slice(1, images.length);
     }
   }
+  deleteReqImages(req);
 
   const newPost = new Post({
     title,
@@ -105,4 +106,35 @@ export const createPost: RequestHandler<
   }
 
   return res.status(201).json({ status: "success" });
+};
+
+interface IGetPostsResponseBody {
+  status: string;
+  posts?: IPost[];
+  serverError?: { customMsg: string };
+}
+export const getPosts: RequestHandler<ParamsDictionary, IGetPostsResponseBody> = async (
+  req,
+  res
+) => {
+  const currentPage = parseInt(req.get("Page") || "1", 10);
+  const perPage = 5;
+
+  let posts: IPost[] | null;
+  try {
+    posts = await Post.find()
+      .populate("creator", "nickname avatar")
+      .sort({ createdAt: -1 })
+      .skip((currentPage - 1) * perPage)
+      .limit(perPage);
+  } catch (error) {
+    return res
+      .status(400)
+      .json({ status: "error", serverError: { customMsg: "bad request", ...error } });
+  }
+  if (!posts) {
+    posts = [];
+  }
+
+  return res.json({ status: "success", posts });
 };

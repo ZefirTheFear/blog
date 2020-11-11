@@ -1,0 +1,88 @@
+@import "../../utils/css/variables";
+@import "../../utils/css/mixins";
+
+.post {
+  border: 1px solid $common-grey-color;
+  border-radius: $main-border-radius;
+  overflow: hidden;
+}
+
+.post__main {
+  padding: 1rem 1.5rem;
+  background: $dark-grey-color;
+  border-bottom: 1px solid $common-grey-color;
+
+  h3 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+}
+
+.post__tags {
+  margin-bottom: 1rem;
+}
+
+.post__tag {
+  margin-right: 1rem;
+  padding: 2px 5px;
+  color: $common-grey-color;
+  background: $dark-color;
+  font-size: 0.85rem;
+  text-decoration: none;
+  border-radius: $main-border-radius;
+  transition: $main-transition;
+
+  @mixin hover {
+    color: $main-app-color;
+  }
+  &:active {
+    @include hover;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @include hover;
+    }
+  }
+}
+
+.post__footer {
+  padding: 0.5rem 1.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.post__creator-avatar {
+  width: 2rem;
+  height: 2rem;
+  margin-right: 0.5rem;
+  border-radius: 50%;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+  }
+}
+
+.post__creator-nickname {
+  margin-right: 1rem;
+  color: currentColor;
+  text-decoration: none;
+  cursor: pointer;
+
+  @mixin hover {
+    color: $main-app-color;
+  }
+  &:active {
+    @include hover;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @include hover;
+    }
+  }
+}
+
+.post__created {
+  margin-left: auto;
+  font-size: 0.7rem;
+}

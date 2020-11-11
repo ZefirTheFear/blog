@@ -1,31 +1,52 @@
 import React, { useMemo, useState, useCallback, useEffect } from "react";
 import cloneDeep from "clone-deep";
 import axios, { AxiosError } from "axios";
+import { useHistory } from "react-router-dom";
 
+import Spinner from "../Spinner/Spinner";
+import SomethingWentWrong from "../SomethingWentWrong/SomethingWentWrong";
+import { ReactComponent as SWWImg } from "../../assets/errorImgs/client-server-error.svg";
 import InputGroup, { InputGroupType } from "../InputGroup/InputGroup";
 import ContentMaker from "../ContentMaker/ContentMaker";
 import TagsMaker from "../TagsMaker/TagsMaker";
 
+import { IValidationError } from "../../models/IValidationError";
 import { LocalStorageItems } from "../../models/LocalStorageItems";
-
 import { ContentUnitToSend } from "../../models/ContentUnit";
+
+import { convertInputErrors } from "../../utils/ts/convertInputErrors";
 
 import "./AddOrEditPost.scss";
 
 interface IAddOrEditPostInputErrors {
-  postTitle?: string[];
-  postBody?: string[];
-  postTags?: string[];
+  title?: string[];
+  contentOrder?: string[];
+  tags?: string[];
+  // postTitle?: string[];
+  // postBody?: string[];
+  // postTags?: string[];
 }
 
 enum AddOrEditPostInputFields {
   postTitle = "postTitle"
 }
 
+interface IAddOrEditPostSuccessfulResponseData {
+  status: string;
+}
+
+interface IAddOrEditPostFailResponseData {
+  status: string;
+  validationErrors?: IValidationError[];
+  serverError?: { customMsg: string };
+}
+
 const AddOrEditPost: React.FC = () => {
   const signal = useMemo(() => {
     return axios.CancelToken.source();
   }, []);
+
+  const history = useHistory();
 
   const jwtToken = localStorage.getItem(LocalStorageItems.jwtToken);
 
@@ -34,13 +55,16 @@ const AddOrEditPost: React.FC = () => {
   const [postTags, setPostTags] = useState<string[]>([]);
   const [inputErrors, setInputErrors] = useState<IAddOrEditPostInputErrors>({});
 
+  const [isFetching, setIsFetching] = useState(false);
+  const [isSomethingWentWrong, setIsSomethingWentWrong] = useState(false);
+
   const changePostTitleValue = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setPostTitle(e.target.value);
   }, []);
 
   const focusPostTitleInput = useCallback((): void => {
     const newErrors = cloneDeep(inputErrors);
-    delete newErrors.postTitle;
+    delete newErrors.title;
     setInputErrors(newErrors);
     return;
   }, [inputErrors]);
@@ -57,8 +81,8 @@ const AddOrEditPost: React.FC = () => {
     const clientErrors: IAddOrEditPostInputErrors = {};
 
     if (postTitle.trim().length < 1 || postTitle.trim().length > 50) {
-      const oldMsgs = clientErrors.postTitle ? cloneDeep(clientErrors.postTitle) : [];
-      clientErrors.postTitle = [...oldMsgs, "from 1 to 50 symbols"];
+      const oldMsgs = clientErrors.title ? cloneDeep(clientErrors.title) : [];
+      clientErrors.title = [...oldMsgs, "from 1 to 50 symbols"];
     }
 
     let postContent = cloneDeep(postBody);
@@ -66,13 +90,13 @@ const AddOrEditPost: React.FC = () => {
       (item) => !(item.type === "text" && item.content.length === 0)
     );
     if (postContent.length < 1 || postContent.length > 8) {
-      const oldMsgs = clientErrors.postBody ? cloneDeep(clientErrors.postBody) : [];
-      clientErrors.postBody = [...oldMsgs, "from 1 to 8 content units"];
+      const oldMsgs = clientErrors.contentOrder ? cloneDeep(clientErrors.contentOrder) : [];
+      clientErrors.contentOrder = [...oldMsgs, "from 1 to 8 content units"];
     }
 
     if (postTags.length < 1 || postTags.length > 8) {
-      const oldMsgs = clientErrors.postTags ? cloneDeep(clientErrors.postTags) : [];
-      clientErrors.postTags = [...oldMsgs, "from 1 to 8 tags"];
+      const oldMsgs = clientErrors.tags ? cloneDeep(clientErrors.tags) : [];
+      clientErrors.tags = [...oldMsgs, "from 1 to 8 tags"];
     }
 
     if (Object.keys(clientErrors).length > 0) {
@@ -82,13 +106,13 @@ const AddOrEditPost: React.FC = () => {
 
   const clearContentErrors = useCallback(() => {
     const newErrors = cloneDeep(inputErrors);
-    delete newErrors.postBody;
+    delete newErrors.contentOrder;
     return setInputErrors(newErrors);
   }, [inputErrors]);
 
   const clearTagsErrors = useCallback(() => {
     const newErrors = cloneDeep(inputErrors);
-    delete newErrors.postTags;
+    delete newErrors.tags;
     return setInputErrors(newErrors);
   }, [inputErrors]);
 
@@ -102,10 +126,6 @@ const AddOrEditPost: React.FC = () => {
       if (validationResult) {
         return setInputErrors(validationResult);
       }
-
-      console.log("title", postTitle);
-      console.log("postBody", postBody);
-      console.log("tags", postTags);
 
       const postData = new FormData();
       postData.append("title", postTitle);
@@ -124,23 +144,51 @@ const AddOrEditPost: React.FC = () => {
       postData.append("text", JSON.stringify(text));
       postData.append("tags", JSON.stringify(postTags));
 
+      setIsFetching(true);
       axios
-        .post("/posts/create-post", postData, {
+        .post<IAddOrEditPostSuccessfulResponseData>("/posts/create-post", postData, {
           headers: { Authorization: jwtToken },
           cancelToken: signal.token
         })
         .then((response) => {
           console.log(response);
-        });
+          history.push("/");
+        })
+        .catch((error: AxiosError<IAddOrEditPostFailResponseData>) => {
+          if (error.response) {
+            console.log(error.response);
+            if (error.response.data.validationErrors) {
+              const inputErrors = convertInputErrors(error.response.data.validationErrors);
+              setInputErrors(inputErrors);
+            } else {
+              setIsSomethingWentWrong(true);
+            }
+          }
+        })
+        .finally(() => setIsFetching(false));
     },
-    [validate, postTitle, postBody, postTags, jwtToken, signal]
+    [validate, postTitle, postBody, postTags, jwtToken, signal, history]
   );
+
+  const closeSWWModal = useCallback(() => {
+    setIsSomethingWentWrong(false);
+  }, []);
 
   useEffect(() => {
     return () => {
       signal.cancel();
     };
   }, [signal]);
+
+  if (isFetching) {
+    return <Spinner />;
+  }
+
+  if (isSomethingWentWrong) {
+    return (
+      <SomethingWentWrong Img={SWWImg} closeSWWModal={closeSWWModal} msg={"something went wrong"} />
+    );
+  }
 
   return (
     <div className="add-or-edit-post">
@@ -149,7 +197,7 @@ const AddOrEditPost: React.FC = () => {
           <InputGroup
             type={InputGroupType.plain}
             inputType="text"
-            {...(inputErrors.postTitle ? { errors: inputErrors.postTitle } : {})}
+            {...(inputErrors.title ? { errors: inputErrors.title } : {})}
             placeholder="Title"
             name={AddOrEditPostInputFields.postTitle}
             value={postTitle}
@@ -160,13 +208,13 @@ const AddOrEditPost: React.FC = () => {
         <div className="add-or-edit-post__content-maker" onClick={clearContentErrors}>
           <ContentMaker
             sendContentToParent={setContent}
-            {...(inputErrors.postBody ? { errors: inputErrors.postBody } : {})}
+            {...(inputErrors.contentOrder ? { errors: inputErrors.contentOrder } : {})}
           />
         </div>
         <div className="add-or-edit-post__tags-maker" onClick={clearTagsErrors}>
           <TagsMaker
             sendTagsToParent={setTags}
-            {...(inputErrors.postTags ? { errors: inputErrors.postTags } : {})}
+            {...(inputErrors.tags ? { errors: inputErrors.tags } : {})}
           />
         </div>
 

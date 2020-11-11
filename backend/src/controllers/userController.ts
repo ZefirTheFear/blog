@@ -54,7 +54,7 @@ export const registerUser: RequestHandler<
   const newUserActivator = new UserActivator({
     userId: savedUser._id,
     hash: hash
-  });
+  } as IUserActivator);
   let savedUserActivator: IUserActivator;
   try {
     savedUserActivator = await newUserActivator.save();
