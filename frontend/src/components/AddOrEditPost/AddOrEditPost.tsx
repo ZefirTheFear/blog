@@ -164,8 +164,8 @@ const AddOrEditPost: React.FC = () => {
               setIsSomethingWentWrong(true);
             }
           }
-        })
-        .finally(() => setIsFetching(false));
+          setIsFetching(false);
+        });
     },
     [validate, postTitle, postBody, postTags, jwtToken, signal, history]
   );
@@ -203,6 +203,7 @@ const AddOrEditPost: React.FC = () => {
             value={postTitle}
             onChange={changePostTitleValue}
             onFocus={focusPostTitleInput}
+            isInitialFocused
           />
         </div>
         <div className="add-or-edit-post__content-maker" onClick={clearContentErrors}>

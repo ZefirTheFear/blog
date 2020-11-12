@@ -4,7 +4,9 @@ import axios, { AxiosError } from "axios";
 import Spinner from "../Spinner/Spinner";
 import SomethingWentWrong from "../SomethingWentWrong/SomethingWentWrong";
 import { ReactComponent as SWWImg } from "../../assets/errorImgs/client-server-error.svg";
+
 import Post from "../Post/Post";
+import PostPagination from "../PostPagination/PostPagination";
 
 import { IPost } from "../../models/IPost";
 import { IValidationError } from "../../models/IValidationError";
@@ -14,6 +16,7 @@ import "./Posts.scss";
 interface IPostsSuccessfulResponseData {
   status: string;
   posts: IPost[];
+  lastPage: number;
 }
 
 interface IPostsFailResponseData {
@@ -28,20 +31,23 @@ const Posts: React.FC = () => {
   }, []);
 
   const [posts, setPosts] = useState<IPost[]>([]);
-  const [page, setPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [lastPage, setLastPage] = useState(0);
 
   const [isFetching, setIsFetching] = useState(true);
   const [isSomethingWentWrong, setIsSomethingWentWrong] = useState(false);
 
   const fetchPosts = useCallback(() => {
+    setIsFetching(true);
     axios
       .get<IPostsSuccessfulResponseData>("/posts/get-posts", {
-        headers: { Page: page },
+        headers: { Page: currentPage },
         cancelToken: signal.token
       })
       .then((response) => {
         console.log(response);
         setPosts(response.data.posts);
+        setLastPage(response.data.lastPage);
       })
       .catch((error: AxiosError<IPostsFailResponseData>) => {
         if (error.response) {
@@ -50,7 +56,7 @@ const Posts: React.FC = () => {
         }
       })
       .finally(() => setIsFetching(false));
-  }, [page, signal]);
+  }, [currentPage, signal]);
 
   const closeSWWModal = useCallback(() => {
     setIsSomethingWentWrong(false);
@@ -66,9 +72,9 @@ const Posts: React.FC = () => {
     };
   }, [signal]);
 
-  if (isFetching) {
-    return <Spinner />;
-  }
+  // if (isFetching) {
+  //   return <Spinner />;
+  // }
 
   if (isSomethingWentWrong) {
     return (
@@ -77,14 +83,25 @@ const Posts: React.FC = () => {
   }
 
   return (
-    <div className="posts">
-      {posts.map((post) => (
-        <div className="posts__post" key={post._id}>
-          <Post post={post} />
-        </div>
-      ))}
-      <div className="posts__pagination">pagination</div>
-    </div>
+    <>
+      {isFetching && <Spinner />}
+      <div className="posts">
+        {posts.map((post) => (
+          <div className="posts__post" key={post._id}>
+            <Post post={post} />
+          </div>
+        ))}
+        {lastPage > 1 && (
+          <div className="posts__pagination">
+            <PostPagination
+              currentPage={currentPage}
+              lastPage={lastPage}
+              setCurrentPage={setCurrentPage}
+            />
+          </div>
+        )}
+      </div>
+    </>
   );
 };
 

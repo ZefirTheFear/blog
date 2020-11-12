@@ -110,6 +110,7 @@ export const createPost: RequestHandler<
 
 interface IGetPostsResponseBody {
   status: string;
+  lastPage?: number;
   posts?: IPost[];
   serverError?: { customMsg: string };
 }
@@ -118,9 +119,24 @@ export const getPosts: RequestHandler<ParamsDictionary, IGetPostsResponseBody> =
   res
 ) => {
   const currentPage = parseInt(req.get("Page") || "1", 10);
-  const perPage = 5;
+  const perPage = 2;
 
+  let postsAmount: number;
   let posts: IPost[] | null;
+
+  try {
+    postsAmount = await Post.find().estimatedDocumentCount();
+  } catch (error) {
+    return res
+      .status(400)
+      .json({ status: "error", serverError: { customMsg: "bad request", ...error } });
+  }
+  if (postsAmount === 0) {
+    posts = [];
+    return res.json({ status: "success", posts, lastPage: 1 });
+  }
+  const lastPage = Math.ceil(postsAmount / perPage);
+
   try {
     posts = await Post.find()
       .populate("creator", "nickname avatar")
@@ -136,5 +152,5 @@ export const getPosts: RequestHandler<ParamsDictionary, IGetPostsResponseBody> =
     posts = [];
   }
 
-  return res.json({ status: "success", posts });
+  return res.json({ status: "success", posts, lastPage });
 };

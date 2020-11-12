@@ -1,8 +1,10 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { v4 as uuid } from "uuid";
 
 import { IPost } from "../../models/IPost";
 import timeFormatter from "../../utils/ts/timeFormatter";
+import PostContentTxt from "../PostContentTxt/PostContentTxt";
 
 import "./Post.scss";
 
@@ -22,7 +24,25 @@ const Post: React.FC<IPostProps> = ({ post }) => {
             </Link>
           ))}
         </div>
-        <div>post content</div>
+        <div className="post__content">
+          {post.body.map((item) => {
+            if (item.type === "text") {
+              return (
+                <div className="post__content-txt" key={uuid()}>
+                  <PostContentTxt content={item.content} />
+                </div>
+              );
+            } else if (item.type === "image") {
+              return (
+                <div className="post__content-img" key={uuid()}>
+                  <img src={item.url} alt="img" />
+                </div>
+              );
+            } else {
+              return null;
+            }
+          })}
+        </div>
       </div>
       <div className="post__footer">
         <div className="post__creator-avatar">

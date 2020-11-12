@@ -185,22 +185,18 @@ exports.createPost = function (req, res) { return __awaiter(void 0, void 0, void
     });
 }); };
 exports.getPosts = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var currentPage, perPage, posts, error_5;
+    var currentPage, perPage, postsAmount, posts, error_5, lastPage, error_6;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 currentPage = parseInt(req.get("Page") || "1", 10);
-                perPage = 5;
+                perPage = 2;
                 _a.label = 1;
             case 1:
                 _a.trys.push([1, 3, , 4]);
-                return [4 /*yield*/, PostModel_1.default.find()
-                        .populate("creator", "nickname avatar")
-                        .sort({ createdAt: -1 })
-                        .skip((currentPage - 1) * perPage)
-                        .limit(perPage)];
+                return [4 /*yield*/, PostModel_1.default.find().estimatedDocumentCount()];
             case 2:
-                posts = _a.sent();
+                postsAmount = _a.sent();
                 return [3 /*break*/, 4];
             case 3:
                 error_5 = _a.sent();
@@ -208,10 +204,32 @@ exports.getPosts = function (req, res) { return __awaiter(void 0, void 0, void 0
                         .status(400)
                         .json({ status: "error", serverError: __assign({ customMsg: "bad request" }, error_5) })];
             case 4:
+                if (postsAmount === 0) {
+                    posts = [];
+                    return [2 /*return*/, res.json({ status: "success", posts: posts, lastPage: 1 })];
+                }
+                lastPage = Math.ceil(postsAmount / perPage);
+                _a.label = 5;
+            case 5:
+                _a.trys.push([5, 7, , 8]);
+                return [4 /*yield*/, PostModel_1.default.find()
+                        .populate("creator", "nickname avatar")
+                        .sort({ createdAt: -1 })
+                        .skip((currentPage - 1) * perPage)
+                        .limit(perPage)];
+            case 6:
+                posts = _a.sent();
+                return [3 /*break*/, 8];
+            case 7:
+                error_6 = _a.sent();
+                return [2 /*return*/, res
+                        .status(400)
+                        .json({ status: "error", serverError: __assign({ customMsg: "bad request" }, error_6) })];
+            case 8:
                 if (!posts) {
                     posts = [];
                 }
-                return [2 /*return*/, res.json({ status: "success", posts: posts })];
+                return [2 /*return*/, res.json({ status: "success", posts: posts, lastPage: lastPage })];
         }
     });
 }); };

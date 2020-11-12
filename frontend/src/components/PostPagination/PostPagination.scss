@@ -1,0 +1,73 @@
+@import "../../utils/css/variables";
+@import "../../utils/css/mixins";
+
+.post-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.post-pagination__to-first-page,
+.post-pagination__to-prev-page,
+.post-pagination__to-next-page,
+.post-pagination__to-last-page {
+  margin: 0.25rem;
+  font-size: 1.5rem;
+  cursor: pointer;
+
+  @mixin hover {
+    color: $main-app-color;
+  }
+  &:active {
+    @include hover;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @include hover;
+    }
+  }
+
+  svg {
+    display: block;
+  }
+}
+
+.post-pagination__pages {
+  display: flex;
+  margin: 0 0.5rem;
+}
+
+.post-pagination__page {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid $common-grey-color;
+  border-radius: $main-border-radius;
+  margin-right: 0.5rem;
+  cursor: pointer;
+  transition: $main-transition;
+
+  &:last-child {
+    margin: 0;
+  }
+
+  @mixin hover {
+    background: $main-app-color;
+    border-color: $main-app-color;
+  }
+  &:active {
+    @include hover;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @include hover;
+    }
+  }
+}
+
+.post-pagination__page_selected {
+  background: $main-app-color;
+  border-color: $main-app-color;
+}
