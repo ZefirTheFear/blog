@@ -8,8 +8,8 @@ import {
   FaMoon,
   FaSignInAlt,
   FaSignOutAlt,
-  FaUser,
-  FaPencilAlt
+  FaPencilAlt,
+  FaUserCog
 } from "react-icons/fa";
 
 import { ReactComponent as Logo } from "../../assets/logo/logo.svg";
@@ -108,7 +108,7 @@ const Header: React.FC = () => {
                   <FaPencilAlt />
                 </div>
                 <div>
-                  <FaUser />
+                  <FaUserCog />
                 </div>
                 <div onClick={logout} title="logout">
                   <FaSignOutAlt />

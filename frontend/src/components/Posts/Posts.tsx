@@ -58,6 +58,13 @@ const Posts: React.FC = () => {
       .finally(() => setIsFetching(false));
   }, [currentPage, signal]);
 
+  const deletePost = useCallback(
+    (postId: string) => {
+      setPosts(posts.filter((post) => post._id !== postId));
+    },
+    [posts]
+  );
+
   const closeSWWModal = useCallback(() => {
     setIsSomethingWentWrong(false);
   }, []);
@@ -72,23 +79,20 @@ const Posts: React.FC = () => {
     };
   }, [signal]);
 
-  // if (isFetching) {
-  //   return <Spinner />;
-  // }
-
-  if (isSomethingWentWrong) {
-    return (
-      <SomethingWentWrong Img={SWWImg} closeSWWModal={closeSWWModal} msg={"something went wrong"} />
-    );
-  }
-
   return (
     <>
       {isFetching && <Spinner />}
+      {isSomethingWentWrong && (
+        <SomethingWentWrong
+          Img={SWWImg}
+          closeSWWModal={closeSWWModal}
+          msg={"something went wrong"}
+        />
+      )}
       <div className="posts">
         {posts.map((post) => (
           <div className="posts__post" key={post._id}>
-            <Post post={post} />
+            <Post post={post} deletePost={deletePost} />
           </div>
         ))}
         {lastPage > 1 && (

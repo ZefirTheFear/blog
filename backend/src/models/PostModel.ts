@@ -23,6 +23,7 @@ export interface IPost extends Document {
   title: string;
   body: PostBodyUnit[];
   creator: IUser["_id"];
+  // creator: Schema.Types.ObjectId;
   tags: string[];
 }
 

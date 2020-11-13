@@ -23,9 +23,6 @@ export const createPost: RequestHandler<
   ICreatePostResponseBody,
   ICreatePostRequestBody
 > = async (req, res) => {
-  // console.log("body", req.body);
-  // console.log("files", req.files);
-  // return;
   const userId = req.userId;
   const { title } = req.body;
   const contentOrder: ("text" | "image")[] = JSON.parse(req.body.contentOrder);
@@ -50,7 +47,7 @@ export const createPost: RequestHandler<
         });
       } catch (error) {
         deleteReqImages(req);
-        return res.json({
+        return res.status(500).json({
           status: "error",
           serverError: { customMsg: "oops. some problems", ...error }
         });
@@ -65,6 +62,8 @@ export const createPost: RequestHandler<
     }
   }
   deleteReqImages(req);
+
+  // const nP = await Post.create({t})
 
   const newPost = new Post({
     title,
@@ -153,4 +152,103 @@ export const getPosts: RequestHandler<ParamsDictionary, IGetPostsResponseBody> =
   }
 
   return res.json({ status: "success", posts, lastPage });
+};
+
+interface IDeletePostParams extends ParamsDictionary {
+  postId: string;
+}
+interface IDeletePostResponseBody {
+  status: string;
+  serverError?: { customMsg: string };
+  data?: unknown;
+}
+export const deletePost: RequestHandler<IDeletePostParams, IDeletePostResponseBody> = async (
+  req,
+  res
+) => {
+  const postId = req.params.postId;
+  const userId = req.userId;
+
+  let post: IPost | null;
+  try {
+    post = await Post.findById(postId);
+  } catch (error) {
+    return res
+      .status(400)
+      .json({ status: "error", serverError: { customMsg: "bad request", ...error } });
+  }
+  if (!post) {
+    return res.status(404).json({ status: "error", serverError: { customMsg: "post not found" } });
+  }
+
+  let user: IUser | null;
+  try {
+    user = await User.findById(userId);
+  } catch (error) {
+    return res
+      .status(400)
+      .json({ status: "error", serverError: { customMsg: "bad request", ...error } });
+  }
+  if (!user) {
+    return res.status(404).json({ status: "error", serverError: { customMsg: "user not found" } });
+  }
+  if (user.status !== "admin" && post.creator !== userId) {
+    return res.status(403).json({ status: "error", serverError: { customMsg: "u cant do it" } });
+  }
+
+  const imagesArray: string[] = [];
+  for (const contentUnit of post.body) {
+    if (contentUnit.type === "image") {
+      imagesArray.push(contentUnit.publicId);
+    }
+  }
+  if (imagesArray.length > 0) {
+    try {
+      await cloudinary.api.delete_resources(imagesArray);
+    } catch (error) {
+      return res.status(500).json({
+        status: "error",
+        serverError: { customMsg: "oops. some problems", ...error }
+      });
+    }
+  }
+
+  try {
+    await post.remove();
+  } catch (error) {
+    return res.status(503).json({
+      status: "error",
+      serverError: { customMsg: "oops. post removing problem", ...error }
+    });
+  }
+
+  let postCreator: IUser | null;
+  try {
+    postCreator = await User.findById(post.creator);
+  } catch (error) {
+    return res
+      .status(400)
+      .json({ status: "error", serverError: { customMsg: "bad request", ...error } });
+  }
+  if (!postCreator) {
+    return res
+      .status(404)
+      .json({ status: "error", serverError: { customMsg: "postCreator not found" } });
+  }
+
+  // const posts = postCreator.posts as Types.DocumentArray<IUser>;
+  // const posts = postCreator.posts;
+  // posts.pull(post._id);
+
+  postCreator.posts.pull(post._id);
+  try {
+    await postCreator.save();
+  } catch (error) {
+    return res.status(503).json({
+      status: "error",
+      serverError: { customMsg: "oops. user updating problem", ...error }
+    });
+  }
+
+  return res.json({ status: "success" });
 };

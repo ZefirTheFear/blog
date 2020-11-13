@@ -31,4 +31,5 @@ var postController = __importStar(require("../controllers/postController"));
 var router = express_1.default.Router();
 router.post("/create-post", isAuth_1.isAuth, uploadFormData_1.uploadFormData, addOrEditPostValidation_1.addOrEditPostValidation, checkValidationResult_1.checkValidationResult, postController.createPost);
 router.get("/get-posts", postController.getPosts);
+router.delete("/delete-post/:postId", isAuth_1.isAuth, postController.deletePost);
 exports.default = router;

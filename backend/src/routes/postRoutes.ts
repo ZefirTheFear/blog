@@ -20,4 +20,6 @@ router.post(
 
 router.get("/get-posts", postController.getPosts);
 
+router.delete("/delete-post/:postId", isAuth, postController.deletePost);
+
 export default router;

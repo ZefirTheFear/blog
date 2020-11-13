@@ -122,26 +122,25 @@ const App: React.FC = () => {
   }, [toggleDarkTheme]);
   // --------------------------------
 
-  if (checkingDarkMode || isFetching) {
-    return <Spinner />;
-  }
-
   return (
-    <div className={"app" + (isDarkTheme ? " app_dark-mode" : "")}>
-      <BrowserRouter>
-        <Header />
-        <MobileSearchForm />
-        <div className="app__inner">
-          <Switch>
-            <Route exact path="/" component={HomePage} />
-            <Route path="/@:nickname" component={ProfilePage} />
-            {isAuth && <Route exact path="/new-post" component={NewPost} />}
-            <Redirect to="/" />
-          </Switch>
-        </div>
-        <Footer />
-      </BrowserRouter>
-    </div>
+    <>
+      {(checkingDarkMode || isFetching) && <Spinner />}
+      <div className={"app" + (isDarkTheme ? " app_dark-mode" : "")}>
+        <BrowserRouter>
+          <Header />
+          <MobileSearchForm />
+          <div className="app__inner">
+            <Switch>
+              <Route exact path="/" component={HomePage} />
+              <Route path="/@:nickname" component={ProfilePage} />
+              {isAuth && <Route exact path="/new-post" component={NewPost} />}
+              <Redirect to="/" />
+            </Switch>
+          </div>
+          <Footer />
+        </BrowserRouter>
+      </div>
+    </>
   );
 };
 

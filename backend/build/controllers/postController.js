@@ -69,7 +69,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getPosts = exports.createPost = void 0;
+exports.deletePost = exports.getPosts = exports.createPost = void 0;
 var cloudinary_1 = require("cloudinary");
 var deleteReqImages_1 = require("../utils/deleteReqImages");
 // import { deleteImage } from "../utils/deleteImage";
@@ -114,7 +114,7 @@ exports.createPost = function (req, res) { return __awaiter(void 0, void 0, void
             case 5:
                 error_1 = _a.sent();
                 deleteReqImages_1.deleteReqImages(req);
-                return [2 /*return*/, res.json({
+                return [2 /*return*/, res.status(500).json({
                         status: "error",
                         serverError: __assign({ customMsg: "oops. some problems" }, error_1)
                     })];
@@ -230,6 +230,119 @@ exports.getPosts = function (req, res) { return __awaiter(void 0, void 0, void 0
                     posts = [];
                 }
                 return [2 /*return*/, res.json({ status: "success", posts: posts, lastPage: lastPage })];
+        }
+    });
+}); };
+exports.deletePost = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var postId, userId, post, error_7, user, error_8, imagesArray, _i, _a, contentUnit, error_9, error_10, postCreator, error_11, error_12;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                postId = req.params.postId;
+                userId = req.userId;
+                _b.label = 1;
+            case 1:
+                _b.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, PostModel_1.default.findById(postId)];
+            case 2:
+                post = _b.sent();
+                return [3 /*break*/, 4];
+            case 3:
+                error_7 = _b.sent();
+                return [2 /*return*/, res
+                        .status(400)
+                        .json({ status: "error", serverError: __assign({ customMsg: "bad request" }, error_7) })];
+            case 4:
+                if (!post) {
+                    return [2 /*return*/, res.status(404).json({ status: "error", serverError: { customMsg: "post not found" } })];
+                }
+                _b.label = 5;
+            case 5:
+                _b.trys.push([5, 7, , 8]);
+                return [4 /*yield*/, UserModel_1.default.findById(userId)];
+            case 6:
+                user = _b.sent();
+                return [3 /*break*/, 8];
+            case 7:
+                error_8 = _b.sent();
+                return [2 /*return*/, res
+                        .status(400)
+                        .json({ status: "error", serverError: __assign({ customMsg: "bad request" }, error_8) })];
+            case 8:
+                if (!user) {
+                    return [2 /*return*/, res.status(404).json({ status: "error", serverError: { customMsg: "user not found" } })];
+                }
+                if (user.status !== "admin" && post.creator !== userId) {
+                    return [2 /*return*/, res.status(403).json({ status: "error", serverError: { customMsg: "u cant do it" } })];
+                }
+                imagesArray = [];
+                for (_i = 0, _a = post.body; _i < _a.length; _i++) {
+                    contentUnit = _a[_i];
+                    if (contentUnit.type === "image") {
+                        imagesArray.push(contentUnit.publicId);
+                    }
+                }
+                if (!(imagesArray.length > 0)) return [3 /*break*/, 12];
+                _b.label = 9;
+            case 9:
+                _b.trys.push([9, 11, , 12]);
+                return [4 /*yield*/, cloudinary_1.v2.api.delete_resources(imagesArray)];
+            case 10:
+                _b.sent();
+                return [3 /*break*/, 12];
+            case 11:
+                error_9 = _b.sent();
+                return [2 /*return*/, res.status(500).json({
+                        status: "error",
+                        serverError: __assign({ customMsg: "oops. some problems" }, error_9)
+                    })];
+            case 12:
+                _b.trys.push([12, 14, , 15]);
+                return [4 /*yield*/, post.remove()];
+            case 13:
+                _b.sent();
+                return [3 /*break*/, 15];
+            case 14:
+                error_10 = _b.sent();
+                return [2 /*return*/, res.status(503).json({
+                        status: "error",
+                        serverError: __assign({ customMsg: "oops. post removing problem" }, error_10)
+                    })];
+            case 15:
+                _b.trys.push([15, 17, , 18]);
+                return [4 /*yield*/, UserModel_1.default.findById(post.creator)];
+            case 16:
+                postCreator = _b.sent();
+                return [3 /*break*/, 18];
+            case 17:
+                error_11 = _b.sent();
+                return [2 /*return*/, res
+                        .status(400)
+                        .json({ status: "error", serverError: __assign({ customMsg: "bad request" }, error_11) })];
+            case 18:
+                if (!postCreator) {
+                    return [2 /*return*/, res
+                            .status(404)
+                            .json({ status: "error", serverError: { customMsg: "postCreator not found" } })];
+                }
+                // const posts = postCreator.posts as Types.DocumentArray<IUser>;
+                // const posts = postCreator.posts;
+                // posts.pull(post._id);
+                postCreator.posts.pull(post._id);
+                _b.label = 19;
+            case 19:
+                _b.trys.push([19, 21, , 22]);
+                return [4 /*yield*/, postCreator.save()];
+            case 20:
+                _b.sent();
+                return [3 /*break*/, 22];
+            case 21:
+                error_12 = _b.sent();
+                return [2 /*return*/, res.status(503).json({
+                        status: "error",
+                        serverError: __assign({ customMsg: "oops. user updating problem" }, error_12)
+                    })];
+            case 22: return [2 /*return*/, res.json({ status: "success" })];
         }
     });
 }); };

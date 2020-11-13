@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import { FaAngleDoubleLeft, FaAngleDoubleRight, FaAngleLeft, FaAngleRight } from "react-icons/fa";
 
@@ -16,6 +16,27 @@ const PostPagination: React.FC<IPostPaginationProps> = ({
   setCurrentPage
 }) => {
   const [firstPageNumberFromSelector, setFirstPageNumberFromSelector] = useState(1);
+  const [isDisabledGoToFirstPage, setIsDisabledGoToFirstPage] = useState(true);
+  const [isDisabledGoToPrevPage, setIsDisabledGoToPrevPage] = useState(true);
+  const [isDisabledGoToNextPage, setIsDisabledGoToNextPage] = useState(false);
+  const [isDisabledGoToLastPage, setIsDisabledGoToLastPage] = useState(false);
+
+  const checkDisabledButtons = useCallback(() => {
+    if (currentPage === 1) {
+      setIsDisabledGoToFirstPage(true);
+      setIsDisabledGoToPrevPage(true);
+    } else {
+      setIsDisabledGoToFirstPage(false);
+      setIsDisabledGoToPrevPage(false);
+    }
+    if (currentPage === lastPage) {
+      setIsDisabledGoToNextPage(true);
+      setIsDisabledGoToLastPage(true);
+    } else {
+      setIsDisabledGoToNextPage(false);
+      setIsDisabledGoToLastPage(false);
+    }
+  }, [currentPage, lastPage]);
 
   const amountOfPagesToSelect = useMemo(() => {
     let amountOfPagesToSelect = 3;
@@ -38,7 +59,9 @@ const PostPagination: React.FC<IPostPaginationProps> = ({
   const goToFirstPage = useCallback(() => {
     if (currentPage !== 1) {
       setCurrentPage(1);
-      setFirstPageNumberFromSelector(1);
+      setTimeout(() => {
+        setFirstPageNumberFromSelector(1);
+      });
     }
   }, [currentPage, setCurrentPage]);
 
@@ -46,9 +69,13 @@ const PostPagination: React.FC<IPostPaginationProps> = ({
     if (currentPage > 1) {
       setCurrentPage((prevPage) => prevPage - 1);
       if (firstPageNumberFromSelector > 1) {
-        setFirstPageNumberFromSelector((prevPage) => prevPage - 1);
+        setTimeout(() => {
+          setFirstPageNumberFromSelector((prevPage) => prevPage - 1);
+        });
       } else {
-        setFirstPageNumberFromSelector(1);
+        setTimeout(() => {
+          setFirstPageNumberFromSelector(1);
+        });
       }
     }
   }, [currentPage, firstPageNumberFromSelector, setCurrentPage]);
@@ -57,9 +84,13 @@ const PostPagination: React.FC<IPostPaginationProps> = ({
     if (currentPage < lastPage) {
       setCurrentPage((prevPage) => prevPage + 1);
       if (firstPageNumberFromSelector < lastPage - (amountOfPagesToSelect - 1)) {
-        setFirstPageNumberFromSelector((prevPage) => prevPage + 1);
+        setTimeout(() => {
+          setFirstPageNumberFromSelector((prevPage) => prevPage + 1);
+        });
       } else {
-        setFirstPageNumberFromSelector(lastPage - (amountOfPagesToSelect - 1));
+        setTimeout(() => {
+          setFirstPageNumberFromSelector(lastPage - (amountOfPagesToSelect - 1));
+        });
       }
     }
   }, [amountOfPagesToSelect, currentPage, firstPageNumberFromSelector, lastPage, setCurrentPage]);
@@ -67,7 +98,9 @@ const PostPagination: React.FC<IPostPaginationProps> = ({
   const goToLastPage = useCallback(() => {
     if (currentPage !== lastPage) {
       setCurrentPage(lastPage);
-      setFirstPageNumberFromSelector(lastPage - (amountOfPagesToSelect - 1));
+      setTimeout(() => {
+        setFirstPageNumberFromSelector(lastPage - (amountOfPagesToSelect - 1));
+      });
     }
   }, [currentPage, lastPage, amountOfPagesToSelect, setCurrentPage]);
 
@@ -79,13 +112,27 @@ const PostPagination: React.FC<IPostPaginationProps> = ({
     [setCurrentPage]
   );
 
+  useEffect(() => {
+    checkDisabledButtons();
+  }, [checkDisabledButtons]);
+
   return (
     <div className="post-pagination">
-      <div className="post-pagination__to-first-page" onClick={goToFirstPage} title="to first page">
+      <div
+        className={
+          "post-pagination__to-first-page" +
+          (isDisabledGoToFirstPage ? " post-pagination__to-first-page_disabled" : "")
+        }
+        onClick={goToFirstPage}
+        title="to first page"
+      >
         <FaAngleDoubleLeft />
       </div>
       <div
-        className="post-pagination__to-prev-page"
+        className={
+          "post-pagination__to-prev-page" +
+          (isDisabledGoToPrevPage ? " post-pagination__to-prev-page_disabled" : "")
+        }
         onClick={goToPrevPage}
         title="to previous page"
       >
@@ -108,10 +155,24 @@ const PostPagination: React.FC<IPostPaginationProps> = ({
           );
         })}
       </div>
-      <div className="post-pagination__to-next-page" onClick={goToNextPage} title="to next page">
+      <div
+        className={
+          "post-pagination__to-next-page" +
+          (isDisabledGoToNextPage ? " post-pagination__to-next-page_disabled" : "")
+        }
+        onClick={goToNextPage}
+        title="to next page"
+      >
         <FaAngleRight />
       </div>
-      <div className="post-pagination__to-last-page" onClick={goToLastPage} title="to last page">
+      <div
+        className={
+          "post-pagination__to-last-page" +
+          (isDisabledGoToLastPage ? " post-pagination__to-last-page_disabled" : "")
+        }
+        onClick={goToLastPage}
+        title="to last page"
+      >
         <FaAngleDoubleRight />
       </div>
     </div>

@@ -4,12 +4,17 @@ import jwt from "jsonwebtoken";
 
 import { jwtPayload } from "./../models/jwtPayload";
 
+// interface IIsAuthParams extends ParamsDictionary {
+//   [key: string]: string;
+// }
+
 interface IIsAuthResBody {
   status: string;
   serverError?: { customMsg: string };
 }
 
 export const isAuth: RequestHandler<ParamsDictionary, IIsAuthResBody> = (req, res, next) => {
+  // export const isAuth: RequestHandler<IIsAuthParams, IIsAuthResBody> = (req, res, next) => {
   const jwtToken = req.get("Authorization");
   if (!jwtToken) {
     res.status(401).json({ status: "error", serverError: { customMsg: "auth failed" } });
@@ -23,8 +28,6 @@ export const isAuth: RequestHandler<ParamsDictionary, IIsAuthResBody> = (req, re
     res.status(403).json({ status: "error", serverError: { customMsg: "auth failed", ...error } });
     return;
   }
-  // req.body.userId = decodedToken.userId;
-  // req["userId"] = decodedToken.userId;
   req.userId = decodedToken.userId;
   next();
 };

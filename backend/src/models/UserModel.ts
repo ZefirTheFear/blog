@@ -1,4 +1,4 @@
-import { Schema, model, Document } from "mongoose";
+import { Schema, model, Document, Types } from "mongoose";
 
 import { IPost } from "./PostModel";
 
@@ -15,7 +15,9 @@ export interface IUser extends Document {
   password: string;
   avatar: { url: string; publicId: string };
   status: UserStatus;
-  posts: IPost["_id"][];
+  posts: Types.DocumentArray<IPost>;
+  // posts: IPost["_id"][];
+  // posts: Schema.Types.ObjectId[];
 }
 
 const UserSchema = new Schema(

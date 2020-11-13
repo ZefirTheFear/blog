@@ -32,14 +32,35 @@
   }
 }
 
+.post-pagination__to-first-page_disabled,
+.post-pagination__to-prev-page_disabled,
+.post-pagination__to-next-page_disabled,
+.post-pagination__to-last-page_disabled {
+  color: $dark-grey-color;
+  cursor: default;
+
+  @mixin hover {
+    color: $dark-grey-color;
+  }
+  &:active {
+    @include hover;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @include hover;
+    }
+  }
+}
+
 .post-pagination__pages {
   display: flex;
   margin: 0 0.5rem;
 }
 
 .post-pagination__page {
-  width: 2rem;
+  min-width: 2rem;
   height: 2rem;
+  padding: 0.25rem;
   display: flex;
   justify-content: center;
   align-items: center;

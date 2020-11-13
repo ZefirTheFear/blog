@@ -48,7 +48,9 @@ const AddOrEditPost: React.FC = () => {
 
   const history = useHistory();
 
-  const jwtToken = localStorage.getItem(LocalStorageItems.jwtToken);
+  const jwtToken = useMemo(() => localStorage.getItem(LocalStorageItems.jwtToken), []);
+
+  // const jwtToken = localStorage.getItem(LocalStorageItems.jwtToken);
 
   const [postTitle, setPostTitle] = useState("");
   const [postBody, setPostBody] = useState<ContentUnitToSend[]>([]);

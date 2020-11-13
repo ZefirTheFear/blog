@@ -17,6 +17,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.isAuth = void 0;
 var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 exports.isAuth = function (req, res, next) {
+    // export const isAuth: RequestHandler<IIsAuthParams, IIsAuthResBody> = (req, res, next) => {
     var jwtToken = req.get("Authorization");
     if (!jwtToken) {
         res.status(401).json({ status: "error", serverError: { customMsg: "auth failed" } });
@@ -30,8 +31,6 @@ exports.isAuth = function (req, res, next) {
         res.status(403).json({ status: "error", serverError: __assign({ customMsg: "auth failed" }, error) });
         return;
     }
-    // req.body.userId = decodedToken.userId;
-    // req["userId"] = decodedToken.userId;
     req.userId = decodedToken.userId;
     next();
 };

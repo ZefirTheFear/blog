@@ -83,6 +83,7 @@
   color: currentColor;
   text-decoration: none;
   cursor: pointer;
+  transition: $main-transition;
 
   @mixin hover {
     color: $main-app-color;
@@ -100,4 +101,31 @@
 .post__created {
   margin-left: auto;
   font-size: 0.7rem;
+}
+
+.post__options {
+  display: flex;
+  margin-left: 1rem;
+}
+
+.post__edit,
+.post__delete {
+  cursor: pointer;
+  transition: $main-transition;
+
+  @mixin hover {
+    color: $main-app-color;
+  }
+  &:active {
+    @include hover;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @include hover;
+    }
+  }
+}
+
+.post__delete {
+  margin-left: 0.5rem;
 }
